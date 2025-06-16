@@ -1,29 +1,30 @@
-import { Button, Typography } from '@mui/material'
-import { useColorScheme } from '@mui/material/styles'
-
-function ModeToggle() {
-  const { mode, setMode } = useColorScheme()
-  return (
-    <Button
-      onClick={() => {
-        setMode(mode === 'light' ? 'dark' : 'light')
-      }}
-    >
-      {mode === 'light' ? 'Turn dark' : 'Turn light'}
-    </Button>
-  )
-}
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Box } from '@mui/material'
+import Header from './components/Header/Header'
+import Footer from './components/Footer/Footer'
+import HomePage from './pages/HomePage'
 
 function App() {
   return (
-    <>
-      <ModeToggle />
-      <Typography variant='body2' color='secondary.main'>
-        Test Typography
-      </Typography>
-      <Button variant='text'>Text</Button>
-      <Button variant='contained'>Contained</Button>
-    </>
+    <BrowserRouter>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh'
+        }}
+      >
+        {/* Main Layout */}
+        <Header />
+        <Box component='main' sx={{ flexGrow: 1 }}>
+          <Routes>
+            <Route path='/' element={<HomePage />} />
+            {/* Add more routes here as needed */}
+          </Routes>
+        </Box>
+        <Footer />
+      </Box>
+    </BrowserRouter>
   )
 }
 
