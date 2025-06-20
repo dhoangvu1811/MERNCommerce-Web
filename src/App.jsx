@@ -3,6 +3,7 @@ import { Box } from '@mui/material'
 import Header from './components/Header/Header'
 import Footer from './components/Footer/Footer'
 import HomePage from './pages/HomePage'
+import CategoryPage from './pages/CategoryPage'
 
 function App() {
   return (
@@ -19,7 +20,7 @@ function App() {
         <Box component='main' sx={{ flexGrow: 1 }}>
           <Routes>
             <Route path='/' element={<HomePage />} />
-            {/* Add more routes here as needed */}
+            <Route path='/category/:categoryId' element={<CategoryPage />} />
           </Routes>
         </Box>
         <Footer />
