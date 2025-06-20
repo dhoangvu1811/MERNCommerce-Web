@@ -27,7 +27,7 @@ function CategoryList() {
       elevation={0}
       sx={{
         p: 2,
-        height: '100%',
+        height: 'auto',
         borderRadius: 2,
         border: '1px solid',
         borderColor: 'divider'

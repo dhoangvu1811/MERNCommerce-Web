@@ -9,7 +9,6 @@ function HomePage() {
       <Container maxWidth='xl'>
         {/* Main layout grid */}
         <Grid container spacing={3}>
-          {' '}
           {/* Sidebar with categories */}
           <Grid item size={{ xs: 12, md: 3, lg: 2.5 }}>
             <CategoryList />

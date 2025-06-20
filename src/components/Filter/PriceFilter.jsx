@@ -8,19 +8,11 @@ import {
   Stack,
   Divider
 } from '@mui/material'
+import { formatPrice } from '../../utils/formatUtils'
 
 function PriceFilter({ onChange }) {
   const [price, setPrice] = useState([0, 10000000])
   const minDistance = 500000
-
-  // Format price as VND currency
-  const formatPrice = (value) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      maximumFractionDigits: 0
-    }).format(value)
-  }
 
   const handleChange = (event, newValue, activeThumb) => {
     if (!Array.isArray(newValue)) {
