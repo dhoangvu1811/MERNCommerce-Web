@@ -8,6 +8,7 @@ import {
   Rating,
   Box
 } from '@mui/material'
+import { formatPrice } from '../../utils/formatUtils'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import { Link } from 'react-router-dom'
 
@@ -51,7 +52,6 @@ function ProductCard({ product }) {
           >
             {product.name}
           </Typography>
-
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <Rating
               value={product.rating}
@@ -63,12 +63,8 @@ function ProductCard({ product }) {
               ({product.numReviews})
             </Typography>
           </Box>
-
           <Typography variant='h6' color='primary' fontWeight='bold'>
-            {new Intl.NumberFormat('vi-VN', {
-              style: 'currency',
-              currency: 'VND'
-            }).format(product.price)}
+            {formatPrice(product.price)}
           </Typography>
         </CardContent>
       </Box>

@@ -18,7 +18,7 @@ function CategoryItem({ category }) {
         }
       }}
     >
-      {category.icon && <ListItemIcon>{category.icon}</ListItemIcon>}{' '}
+      {category.icon && <ListItemIcon>{category.icon}</ListItemIcon>}
       <ListItemText
         primary={category.name}
         primaryTypographyProps={{ color: 'inherit' }} // Đảm bảo text luôn theo màu được chỉ định ở trên
