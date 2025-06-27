@@ -13,7 +13,7 @@ function SimilarProducts({ products }) {
       </Typography>
       <Grid container spacing={2}>
         {products.map((item) => (
-          <Grid item xs={4} key={item.id}>
+          <Grid size={{ xs: 4 }} key={item.id}>
             <Box
               component={Link}
               href={`/product/${item.id}`}

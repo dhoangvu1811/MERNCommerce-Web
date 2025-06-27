@@ -33,7 +33,7 @@ function MobileBuyBox({ product }) {
       }}
     >
       <Grid container spacing={2} alignItems='center'>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <Box sx={{ mb: { xs: 2, sm: 0 } }}>
             <Typography variant='h6' fontWeight='bold' gutterBottom>
               Tổng tiền:
@@ -43,7 +43,7 @@ function MobileBuyBox({ product }) {
             </Typography>
           </Box>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton

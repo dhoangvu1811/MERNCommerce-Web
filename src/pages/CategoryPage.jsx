@@ -105,7 +105,7 @@ function CategoryPage() {
         <Grid container spacing={3}>
           {/* Sidebar with filters */}
           {(filterVisible || !isMobile) && (
-            <Grid item size={{ xs: 12, md: 3, lg: 2.5 }}>
+            <Grid size={{ xs: 12, md: 3, lg: 2.5 }}>
               <FilterSidebar
                 onFilterChange={handleFilterChange}
                 isFilterVisible={filterVisible}
@@ -116,7 +116,6 @@ function CategoryPage() {
 
           {/* Main content area */}
           <Grid
-            item
             size={{
               xs: 12,
               md: filterVisible ? 9 : 12,
