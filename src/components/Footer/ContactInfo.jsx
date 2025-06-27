@@ -11,7 +11,7 @@ function ContactInfo() {
       </Typography>
 
       <Grid container spacing={1}>
-        <Grid item size={12}>
+        <Grid size={12}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <LocationOnIcon color='inherit' fontSize='small' sx={{ mr: 1 }} />
             <Typography variant='body2'>
@@ -19,13 +19,13 @@ function ContactInfo() {
             </Typography>
           </Box>
         </Grid>
-        <Grid item size={12}>
+        <Grid size={12}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <PhoneIcon color='inherit' fontSize='small' sx={{ mr: 1 }} />
             <Typography variant='body2'>Hotline: 1900 1234</Typography>
           </Box>
         </Grid>
-        <Grid item size={12}>
+        <Grid size={12}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <EmailIcon color='inherit' fontSize='small' sx={{ mr: 1 }} />
             <Typography variant='body2'>Email: support@myshop.com</Typography>

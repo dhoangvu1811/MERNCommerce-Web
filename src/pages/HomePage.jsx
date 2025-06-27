@@ -1,4 +1,4 @@
-import { Grid, Container, Box } from '@mui/material'
+import { Grid, Box, Container } from '@mui/material'
 import CategoryList from '../components/Category/CategoryList'
 import BannerSlider from '../components/Banner/BannerSlider'
 import ProductList from '../components/Product/ProductList'
@@ -10,11 +10,11 @@ function HomePage() {
         {/* Main layout grid */}
         <Grid container spacing={3}>
           {/* Sidebar with categories */}
-          <Grid item size={{ xs: 12, md: 3, lg: 2.5 }}>
+          <Grid size={{ xs: 12, md: 3, lg: 2.5 }}>
             <CategoryList />
           </Grid>
           {/* Main content area */}
-          <Grid item size={{ xs: 12, md: 9, lg: 9.5 }}>
+          <Grid size={{ xs: 12, md: 9, lg: 9.5 }}>
             {/* Banner slider */}
             <BannerSlider />
 

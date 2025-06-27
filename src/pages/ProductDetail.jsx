@@ -180,7 +180,7 @@ function ProductDetail() {
             {/* Row 1: Product images only */}
             <Box sx={{ mb: 4 }}>
               <Grid container justifyContent='center'>
-                <Grid item xs={12} md={8} lg={8}>
+                <Grid size={{ xs: 12, md: 8, lg: 8 }}>
                   <ProductGallery
                     images={product.images}
                     productName={product.name}
@@ -192,7 +192,7 @@ function ProductDetail() {
             <Box sx={{ mb: 4 }}>
               <Grid container spacing={2} justifyContent='center'>
                 {/* Left column - Product details */}
-                <Grid item xs={12} md={8} lg={8}>
+                <Grid size={{ xs: 12, md: 8, lg: 8 }}>
                   <ProductInfo
                     product={product}
                     similarProducts={similarProducts}
@@ -200,7 +200,7 @@ function ProductDetail() {
                 </Grid>
 
                 {/* Right column - Buy box */}
-                <Grid item xs={12} md={4} lg={4}>
+                <Grid size={{ xs: 12, md: 4, lg: 4 }}>
                   {!isMobile ? (
                     <BuyBox product={product} />
                   ) : (

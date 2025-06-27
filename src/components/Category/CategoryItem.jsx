@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom'
 function CategoryItem({ category }) {
   return (
     <ListItem
-      button
       component={Link}
       to={`/category/${category.id}`}
       sx={{

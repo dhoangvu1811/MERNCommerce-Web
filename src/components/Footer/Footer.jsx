@@ -24,7 +24,7 @@ function Footer() {
     >
       <Container maxWidth='xl'>
         <Grid container spacing={4}>
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Box sx={{ mb: 3 }}>
               <Typography variant='h6' fontWeight='bold' gutterBottom>
                 MyShop
@@ -37,11 +37,11 @@ function Footer() {
             <SocialLinks />
           </Grid>
 
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <ContactInfo />
           </Grid>
 
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Typography variant='h6' sx={{ mb: 2, fontWeight: 'bold' }}>
               Chính sách
             </Typography>
@@ -57,7 +57,7 @@ function Footer() {
             ))}
           </Grid>
 
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Typography variant='h6' sx={{ mb: 2, fontWeight: 'bold' }}>
               Hỗ trợ
             </Typography>
