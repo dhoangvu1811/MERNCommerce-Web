@@ -111,7 +111,7 @@ const SecurityTab = () => {
 
       <Box component='form' onSubmit={handleSubmit(onSubmit)} noValidate>
         <Grid container spacing={3}>
-          <Grid item size={{ xs: 12 }}>
+          <Grid size={{ xs: 12 }}>
             <Controller
               name='currentPassword'
               control={control}
@@ -132,7 +132,7 @@ const SecurityTab = () => {
             />
           </Grid>
 
-          <Grid item size={{ xs: 12 }}>
+          <Grid size={{ xs: 12 }}>
             <Controller
               name='newPassword'
               control={control}
@@ -161,7 +161,7 @@ const SecurityTab = () => {
             />
           </Grid>
 
-          <Grid item size={{ xs: 12 }}>
+          <Grid size={{ xs: 12 }}>
             <Controller
               name='confirmPassword'
               control={control}
@@ -186,7 +186,7 @@ const SecurityTab = () => {
             />
           </Grid>
 
-          <Grid item size={{ xs: 12 }}>
+          <Grid size={{ xs: 12 }}>
             <Button
               type='submit'
               variant='contained'
