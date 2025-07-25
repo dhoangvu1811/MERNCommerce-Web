@@ -64,7 +64,7 @@ const ProfileTab = () => {
   return (
     <Box component='form' onSubmit={handleSubmit(onSubmit)} noValidate>
       <Grid container spacing={4}>
-        <Grid item size={{ xs: 12, md: 4 }}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Paper
             elevation={1}
             sx={{
@@ -123,7 +123,7 @@ const ProfileTab = () => {
           </Paper>
         </Grid>
 
-        <Grid item size={{ xs: 12, md: 8 }}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Paper elevation={1} sx={{ p: 3 }}>
             <Typography variant='h6' gutterBottom>
               Personal Information
@@ -131,7 +131,7 @@ const ProfileTab = () => {
             <Divider sx={{ mb: 3 }} />
 
             <Grid container spacing={2}>
-              <Grid item size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Controller
                   name='firstName'
                   control={control}
@@ -149,7 +149,7 @@ const ProfileTab = () => {
                 />
               </Grid>
 
-              <Grid item size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Controller
                   name='lastName'
                   control={control}
@@ -167,7 +167,7 @@ const ProfileTab = () => {
                 />
               </Grid>
 
-              <Grid item size={{ xs: 12 }}>
+              <Grid size={{ xs: 12 }}>
                 <Controller
                   name='email'
                   control={control}
@@ -192,7 +192,7 @@ const ProfileTab = () => {
                 />
               </Grid>
 
-              <Grid item size={{ xs: 12 }}>
+              <Grid size={{ xs: 12 }}>
                 <Controller
                   name='phone'
                   control={control}
@@ -208,7 +208,7 @@ const ProfileTab = () => {
                 />
               </Grid>
 
-              <Grid item size={{ xs: 12 }}>
+              <Grid size={{ xs: 12 }}>
                 <Controller
                   name='address'
                   control={control}
@@ -226,7 +226,7 @@ const ProfileTab = () => {
                 />
               </Grid>
 
-              <Grid item size={{ xs: 12 }}>
+              <Grid size={{ xs: 12 }}>
                 <Button
                   type='submit'
                   variant='contained'
