@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 import React from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import {
@@ -10,8 +11,14 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Divider
+  Divider,
+  CircularProgress,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material'
+import { toast } from 'react-toastify'
+import { createProduct, updateProduct, getAllProductTypes } from '~/apis'
+import ImageUpload from './ImageUpload'
 
 const ProductFormDrawer = ({
   open,
@@ -20,6 +27,11 @@ const ProductFormDrawer = ({
   product = null,
   title
 }) => {
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [productTypes, setProductTypes] = React.useState([])
+  const [loadingTypes, setLoadingTypes] = React.useState(false)
+  const [isCustomType, setIsCustomType] = React.useState(false)
+
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       name: product?.name || '',
@@ -28,9 +40,27 @@ const ProductFormDrawer = ({
       type: product?.type || '',
       countInStock: product?.countInStock || 1,
       description: product?.description || '',
-      discount: product?.discount || 0
+      discount: product?.discount || 0,
+      image: product?.image || ''
     }
   })
+
+  // Load danh sách loại sản phẩm từ API
+  React.useEffect(() => {
+    const fetchProductTypes = async () => {
+      setLoadingTypes(true)
+      const response = await getAllProductTypes()
+      if (response.code === 200 && response.data) {
+        setProductTypes(response.data)
+      }
+      setLoadingTypes(false)
+    }
+
+    // Chỉ fetch khi drawer được mở
+    if (open) {
+      fetchProductTypes()
+    }
+  }, [open])
 
   React.useEffect(() => {
     if (product) {
@@ -41,8 +71,13 @@ const ProductFormDrawer = ({
         type: product.type,
         countInStock: product.countInStock,
         description: product.description,
-        discount: product.discount
+        discount: product.discount,
+        image: product.image
       })
+      // Kiểm tra xem type có trong danh sách hiện tại không
+      setIsCustomType(
+        !productTypes.includes(product.type) && productTypes.length > 0
+      )
     } else {
       reset({
         name: '',
@@ -51,19 +86,52 @@ const ProductFormDrawer = ({
         type: '',
         countInStock: 1,
         description: '',
-        discount: 0
+        discount: 0,
+        image: ''
       })
+      setIsCustomType(false)
     }
-  }, [product, reset])
+  }, [product, reset, productTypes])
 
-  const handleFormSubmit = (data) => {
-    onSubmit(data)
+  const handleFormSubmit = async (data) => {
+    setIsLoading(true)
+
+    let response
+
+    if (product) {
+      // Cập nhật sản phẩm
+      response = await updateProduct(product._id, data)
+      toast.success('Cập nhật sản phẩm thành công!')
+    } else {
+      // Tạo sản phẩm mới
+      response = await createProduct(data)
+      toast.success('Thêm sản phẩm thành công!')
+    }
+
+    // Refresh danh sách productTypes nếu có type mới
+    if (isCustomType && data.type) {
+      const typesResponse = await getAllProductTypes()
+      if (typesResponse.code === 200 && typesResponse.data) {
+        setProductTypes(typesResponse.data)
+      }
+    }
+
+    // Gọi callback để refresh data table
+    if (onSubmit) {
+      onSubmit(response.data)
+    }
+
+    // Reset form và đóng drawer
     reset()
+    setIsCustomType(false)
+    onClose()
+    setIsLoading(false)
   }
 
   const handleCancel = () => {
     onClose()
     reset()
+    setIsCustomType(false)
   }
 
   return (
@@ -96,6 +164,10 @@ const ProductFormDrawer = ({
             minLength: {
               value: 2,
               message: 'Tên sản phẩm phải có ít nhất 2 ký tự'
+            },
+            maxLength: {
+              value: 255,
+              message: 'Tên sản phẩm không được vượt quá 255 ký tự'
             }
           }}
           render={({ field, fieldState: { error } }) => (
@@ -106,6 +178,23 @@ const ProductFormDrawer = ({
               variant='outlined'
               error={!!error}
               helperText={error?.message}
+            />
+          )}
+        />
+
+        <Controller
+          name='image'
+          control={control}
+          rules={{
+            required: 'Hình ảnh sản phẩm là bắt buộc'
+          }}
+          render={({ field, fieldState: { error } }) => (
+            <ImageUpload
+              value={field.value}
+              onChange={field.onChange}
+              error={!!error}
+              helperText={error?.message}
+              disabled={isLoading}
             />
           )}
         />
@@ -166,24 +255,84 @@ const ProductFormDrawer = ({
         <Controller
           name='type'
           control={control}
-          rules={{ required: 'Loại sản phẩm là bắt buộc' }}
+          rules={{
+            required: 'Loại sản phẩm là bắt buộc',
+            ...(isCustomType && {
+              minLength: {
+                value: 2,
+                message: 'Loại sản phẩm phải có ít nhất 2 ký tự'
+              },
+              maxLength: {
+                value: 100,
+                message: 'Loại sản phẩm không được vượt quá 100 ký tự'
+              }
+            })
+          }}
           render={({ field, fieldState: { error } }) => (
-            <FormControl fullWidth error={!!error}>
-              <InputLabel>Loại sản phẩm</InputLabel>
-              <Select {...field} label='Loại sản phẩm'>
-                <MenuItem value='Điện thoại'>Điện thoại</MenuItem>
-                <MenuItem value='Laptop'>Laptop</MenuItem>
-                <MenuItem value='Tablet'>Tablet</MenuItem>
-                <MenuItem value='Đồng hồ'>Đồng hồ</MenuItem>
-                <MenuItem value='Tai nghe'>Tai nghe</MenuItem>
-                <MenuItem value='Phụ kiện'>Phụ kiện</MenuItem>
-              </Select>
-              {error && (
-                <Typography variant='caption' color='error' sx={{ mt: 1 }}>
-                  {error.message}
-                </Typography>
+            <Box>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={isCustomType}
+                    onChange={(e) => {
+                      setIsCustomType(e.target.checked)
+                      if (e.target.checked) {
+                        field.onChange('') // Reset value when switching to custom
+                      }
+                    }}
+                  />
+                }
+                label='Nhập loại sản phẩm mới'
+                sx={{ mb: 1 }}
+              />
+
+              {isCustomType ? (
+                <TextField
+                  {...field}
+                  label='Loại sản phẩm mới'
+                  fullWidth
+                  variant='outlined'
+                  error={!!error}
+                  helperText={error?.message || 'Nhập tên loại sản phẩm mới'}
+                  placeholder='Ví dụ: Smartwatch, Máy ảnh, Loa bluetooth...'
+                />
+              ) : (
+                <FormControl fullWidth error={!!error}>
+                  <InputLabel>Loại sản phẩm</InputLabel>
+                  <Select
+                    {...field}
+                    label='Loại sản phẩm'
+                    disabled={loadingTypes}
+                  >
+                    {loadingTypes ? (
+                      <MenuItem value='' disabled>
+                        <Box
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        >
+                          <CircularProgress size={16} />
+                          Đang tải...
+                        </Box>
+                      </MenuItem>
+                    ) : productTypes.length > 0 ? (
+                      productTypes.map((type) => (
+                        <MenuItem key={type} value={type}>
+                          {type}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem value='' disabled>
+                        Không có dữ liệu
+                      </MenuItem>
+                    )}
+                  </Select>
+                  {error && (
+                    <Typography variant='caption' color='error' sx={{ mt: 1 }}>
+                      {error.message}
+                    </Typography>
+                  )}
+                </FormControl>
               )}
-            </FormControl>
+            </Box>
           )}
         />
 
@@ -247,6 +396,10 @@ const ProductFormDrawer = ({
             minLength: {
               value: 10,
               message: 'Mô tả phải có ít nhất 10 ký tự'
+            },
+            maxLength: {
+              value: 1000,
+              message: 'Mô tả không được vượt quá 1000 ký tự'
             }
           }}
           render={({ field, fieldState: { error } }) => (
@@ -264,8 +417,21 @@ const ProductFormDrawer = ({
         />
 
         <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-          <Button type='submit' variant='contained' color='primary' fullWidth>
-            {product ? 'Lưu' : 'Thêm sản phẩm'}
+          <Button
+            type='submit'
+            variant='contained'
+            color='primary'
+            fullWidth
+            disabled={isLoading}
+            startIcon={isLoading && <CircularProgress size={20} />}
+          >
+            {isLoading
+              ? product
+                ? 'Đang cập nhật...'
+                : 'Đang thêm...'
+              : product
+              ? 'Cập nhật sản phẩm'
+              : 'Thêm sản phẩm'}
           </Button>
           <Button
             type='button'
@@ -273,6 +439,7 @@ const ProductFormDrawer = ({
             color='secondary'
             onClick={handleCancel}
             fullWidth
+            disabled={isLoading}
           >
             Hủy
           </Button>

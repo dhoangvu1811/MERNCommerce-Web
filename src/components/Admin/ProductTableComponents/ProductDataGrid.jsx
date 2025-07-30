@@ -1,5 +1,5 @@
 import React from 'react'
-import { Paper, Box, IconButton, Rating, Typography } from '@mui/material'
+import { Paper, Box, IconButton, Rating, Typography, Tooltip } from '@mui/material'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -9,6 +9,81 @@ const ProductDataGrid = ({ products, onEdit, onDelete }) => {
   // Column definitions for DataGrid
   const columns = [
     { field: 'name', headerName: 'Tên sản phẩm', flex: 1, minWidth: 180 },
+    {
+      field: 'image',
+      headerName: 'Hình ảnh',
+      width: 100,
+      sortable: false,
+      filterable: false,
+      disableExport: true,
+      renderCell: (params) => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%'
+          }}
+        >
+          <Tooltip
+            title={
+              <Box
+                component="img"
+                src={params.value}
+                alt={params.row.name}
+                sx={{
+                  maxWidth: 200,
+                  maxHeight: 200,
+                  borderRadius: 1
+                }}
+              />
+            }
+            placement="right"
+          >
+            <Box
+              component="img"
+              src={params.value}
+              alt={params.row.name}
+              sx={{
+                width: 50,
+                height: 50,
+                borderRadius: 1,
+                objectFit: 'cover',
+                border: '1px solid',
+                borderColor: 'grey.300',
+                cursor: 'pointer',
+                '&:hover': {
+                  opacity: 0.8
+                }
+              }}
+              onError={(e) => {
+                // Fallback to a simple placeholder or hide the image
+                e.target.style.display = 'none'
+                e.target.parentElement.nextSibling.style.display = 'flex'
+              }}
+            />
+          </Tooltip>
+          {/* Fallback placeholder */}
+          <Box
+            sx={{
+              width: 50,
+              height: 50,
+              borderRadius: 1,
+              border: '1px solid',
+              borderColor: 'grey.300',
+              bgcolor: 'grey.100',
+              display: 'none',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <Typography variant="caption" color="text.secondary">
+              N/A
+            </Typography>
+          </Box>
+        </Box>
+      )
+    },
     {
       field: 'price',
       headerName: 'Giá',
@@ -54,14 +129,14 @@ const ProductDataGrid = ({ products, onEdit, onDelete }) => {
           <IconButton
             size='small'
             color='primary'
-            onClick={() => onEdit(params.row.id)}
+            onClick={() => onEdit(params.row._id)}
           >
             <EditIcon fontSize='small' />
           </IconButton>
           <IconButton
             size='small'
             color='error'
-            onClick={() => onDelete(params.row.id)}
+            onClick={() => onDelete(params.row._id)}
           >
             <DeleteIcon fontSize='small' />
           </IconButton>
@@ -71,10 +146,11 @@ const ProductDataGrid = ({ products, onEdit, onDelete }) => {
   ]
 
   return (
-    <Paper sx={{ height: 'calc(100vh - 230px)', width: '100%' }}>
+    <Paper sx={{ height: 'calc(100vh - 230px)', width: '100%', overflow: 'hidden' }}>
       <DataGrid
         rows={products}
         columns={columns}
+        getRowId={(row) => row._id}
         initialState={{
           pagination: {
             paginationModel: { pageSize: 10 }
@@ -100,10 +176,47 @@ const ProductDataGrid = ({ products, onEdit, onDelete }) => {
         disableRowSelectionOnClick={false}
         disableDensitySelector
         checkboxSelection
-        autoHeight
+        rowHeight={70}
         sx={{
+          '& .MuiDataGrid-row': {
+            minHeight: '70px !important',
+            '&:last-child': {
+              minHeight: '70px !important',
+              '& .MuiDataGrid-cell': {
+                minHeight: '70px !important'
+              }
+            }
+          },
+          '& .MuiDataGrid-cell': {
+            display: 'flex',
+            alignItems: 'center',
+            minHeight: '70px !important'
+          },
           '& .MuiDataGrid-row:hover': {
             backgroundColor: 'rgba(0, 0, 0, 0.04)'
+          },
+          '& .MuiDataGrid-virtualScroller': {
+            overflowX: 'auto',
+            overflowY: 'auto',
+            '&::-webkit-scrollbar': {
+              height: '8px',
+              width: '8px'
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: 'transparent'
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: 'rgba(0,0,0,0.2)',
+              borderRadius: '4px'
+            }
+          },
+          '& .MuiDataGrid-main': {
+            '& .MuiDataGrid-row:last-child': {
+              borderBottom: 'none'
+            }
+          },
+          '& .MuiDataGrid-footerContainer': {
+            minHeight: '52px'
           }
         }}
         loading={false}
