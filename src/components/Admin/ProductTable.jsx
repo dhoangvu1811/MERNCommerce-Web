@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { Box } from '@mui/material'
 import {
   ProductSearchBar,
@@ -7,60 +7,7 @@ import {
   ProductDataGrid,
   ProductFormDrawer
 } from './ProductTableComponents'
-
-// Mock data for products
-const mockProducts = [
-  {
-    id: 1,
-    name: 'iPhone 14 Pro',
-    price: 28990000,
-    rating: 4.8,
-    type: 'Điện thoại',
-    countInStock: 15,
-    description: 'Điện thoại iPhone 14 Pro mới nhất',
-    discount: 5
-  },
-  {
-    id: 2,
-    name: 'Samsung Galaxy S23',
-    price: 23990000,
-    rating: 4.7,
-    type: 'Điện thoại',
-    countInStock: 20,
-    description: 'Điện thoại Samsung Galaxy S23 Ultra',
-    discount: 10
-  },
-  {
-    id: 3,
-    name: 'Macbook Pro M2',
-    price: 45990000,
-    rating: 4.9,
-    type: 'Laptop',
-    countInStock: 8,
-    description: 'Laptop Macbook Pro với chip M2',
-    discount: 0
-  },
-  {
-    id: 4,
-    name: 'iPad Air',
-    price: 16990000,
-    rating: 4.6,
-    type: 'Tablet',
-    countInStock: 12,
-    description: 'Máy tính bảng iPad Air',
-    discount: 8
-  },
-  {
-    id: 5,
-    name: 'Apple Watch Series 8',
-    price: 10990000,
-    rating: 4.5,
-    type: 'Đồng hồ',
-    countInStock: 25,
-    description: 'Đồng hồ thông minh Apple Watch Series 8',
-    discount: 15
-  }
-]
+import { useProducts } from '~/utils/useProducts'
 
 const ProductTable = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -70,19 +17,21 @@ const ProductTable = () => {
   const [addDrawerOpen, setAddDrawerOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
 
-  // Filter products based on search term
-  const filteredProducts = useMemo(() => {
-    return mockProducts.filter(
-      (product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  }, [searchTerm])
+  // Sử dụng custom hook để quản lý products
+  const {
+    products,
+    loading,
+    pagination,
+    handleDeleteProduct,
+    handleProductSuccess,
+    handlePageChange,
+    handleItemsPerPageChange,
+    handleSearch
+  } = useProducts()
 
   // Action handlers
   const handleEdit = (id) => {
-    const product = mockProducts.find((p) => p.id === id)
+    const product = products.find((p) => p._id === id)
     if (product) {
       setEditingProduct(product)
       setEditDrawerOpen(true)
@@ -90,16 +39,19 @@ const ProductTable = () => {
   }
 
   const handleDeleteClick = (id) => {
-    setProductToDelete(id)
-    setDeleteDialogOpen(true)
+    const product = products.find((p) => p._id === id)
+    if (product) {
+      setProductToDelete(product)
+      setDeleteDialogOpen(true)
+    }
   }
 
-  const handleDeleteConfirm = () => {
-    // Here you would typically call an API to delete the product
-    alert(`Deleted product with id: ${productToDelete}`)
-    setDeleteDialogOpen(false)
-    setProductToDelete(null)
-    // In a real app, you would update the product list after successful deletion
+  const handleDeleteConfirm = async () => {
+    if (productToDelete) {
+      await handleDeleteProduct(productToDelete._id)
+      setDeleteDialogOpen(false)
+      setProductToDelete(null)
+    }
   }
 
   const handleDeleteCancel = () => {
@@ -107,16 +59,10 @@ const ProductTable = () => {
     setProductToDelete(null)
   }
 
-  const handleEditSubmit = (data) => {
-    // Here you would typically call an API to update the product
-    alert(
-      `Saved product: ${editingProduct.name} with new data: ${JSON.stringify(
-        data
-      )}`
-    )
+  const handleEditSubmit = async () => {
     setEditDrawerOpen(false)
     setEditingProduct(null)
-    // In a real app, you would update the product list after successful save
+    // handleProductSuccess sẽ được gọi trong ProductFormDrawer
   }
 
   const handleEditCancel = () => {
@@ -128,15 +74,34 @@ const ProductTable = () => {
     setAddDrawerOpen(true)
   }
 
-  const handleAddSubmit = (data) => {
-    // Here you would typically call an API to create the product
-    alert(`Added new product: ${JSON.stringify(data)}`)
+  const handleAddSubmit = async () => {
     setAddDrawerOpen(false)
-    // In a real app, you would update the product list after successful creation
+    // handleProductSuccess sẽ được gọi trong ProductFormDrawer
   }
 
   const handleAddCancel = () => {
     setAddDrawerOpen(false)
+  }
+
+  // Tìm kiếm sản phẩm khi searchTerm thay đổi
+  const handleSearchChange = (newSearchTerm) => {
+    setSearchTerm(newSearchTerm)
+
+    if (newSearchTerm.trim()) {
+      // Có thể implement search API endpoint ở đây
+      const filteredProducts = products.filter(
+        (product) =>
+          product.name.toLowerCase().includes(newSearchTerm.toLowerCase()) ||
+          product.type.toLowerCase().includes(newSearchTerm.toLowerCase()) ||
+          product.description
+            .toLowerCase()
+            .includes(newSearchTerm.toLowerCase())
+      )
+      // Tạm thời filter local, sau này có thể gọi API search
+    } else {
+      // Reset search
+      handleSearch({})
+    }
   }
 
   return (
@@ -152,12 +117,13 @@ const ProductTable = () => {
         <ProductTableHeader onAddNew={handleAddNew} />
         <ProductSearchBar
           searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
+          onSearchChange={handleSearchChange}
         />
       </Box>
 
       <ProductDataGrid
-        products={filteredProducts}
+        products={products}
+        loading={loading}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
       />
@@ -167,13 +133,14 @@ const ProductTable = () => {
         open={deleteDialogOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
+        productName={productToDelete?.name}
       />
 
       {/* Edit Product Drawer */}
       <ProductFormDrawer
         open={editDrawerOpen}
         onClose={handleEditCancel}
-        onSubmit={handleEditSubmit}
+        onSubmit={handleProductSuccess}
         product={editingProduct}
         title='Chỉnh sửa thông tin sản phẩm'
       />
@@ -182,7 +149,7 @@ const ProductTable = () => {
       <ProductFormDrawer
         open={addDrawerOpen}
         onClose={handleAddCancel}
-        onSubmit={handleAddSubmit}
+        onSubmit={handleProductSuccess}
         product={null}
         title='Thêm sản phẩm mới'
       />
