@@ -1,11 +1,40 @@
-import React from 'react'
-import { Paper, Box, IconButton, Rating, Typography, Tooltip } from '@mui/material'
+import React, { useState } from 'react'
+import {
+  Paper,
+  Box,
+  IconButton,
+  Rating,
+  Typography,
+  Tooltip,
+  Button
+} from '@mui/material'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import { formatPrice } from '../../../utils/formatUtils'
 
-const ProductDataGrid = ({ products, onEdit, onDelete }) => {
+const ProductDataGrid = ({
+  products = [],
+  onEdit,
+  onDelete,
+  onBulkDelete,
+  loading = false
+}) => {
+  const [selectedRows, setSelectedRows] = useState([])
+
+  // Xử lý bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedRows.length === 0) return
+
+    try {
+      await onBulkDelete(selectedRows)
+      setSelectedRows([]) // Reset selection sau khi xóa
+    } catch {
+      // Xử lý lỗi bulk delete
+    }
+  }
+
   // Column definitions for DataGrid
   const columns = [
     { field: 'name', headerName: 'Tên sản phẩm', flex: 1, minWidth: 180 },
@@ -28,7 +57,7 @@ const ProductDataGrid = ({ products, onEdit, onDelete }) => {
           <Tooltip
             title={
               <Box
-                component="img"
+                component='img'
                 src={params.value}
                 alt={params.row.name}
                 sx={{
@@ -38,10 +67,10 @@ const ProductDataGrid = ({ products, onEdit, onDelete }) => {
                 }}
               />
             }
-            placement="right"
+            placement='right'
           >
             <Box
-              component="img"
+              component='img'
               src={params.value}
               alt={params.row.name}
               sx={{
@@ -77,7 +106,7 @@ const ProductDataGrid = ({ products, onEdit, onDelete }) => {
               justifyContent: 'center'
             }}
           >
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant='caption' color='text.secondary'>
               N/A
             </Typography>
           </Box>
@@ -146,11 +175,51 @@ const ProductDataGrid = ({ products, onEdit, onDelete }) => {
   ]
 
   return (
-    <Paper sx={{ height: 'calc(100vh - 230px)', width: '100%', overflow: 'hidden' }}>
+    <Paper
+      sx={{ height: 'calc(100vh - 230px)', width: '100%', overflow: 'hidden' }}
+    >
+      {/* Bulk Actions Toolbar */}
+      {selectedRows && selectedRows.length > 0 && (
+        <Box
+          sx={{
+            p: 2,
+            backgroundColor: '#f5f5f5',
+            borderBottom: '1px solid #ddd',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Typography variant='body2'>
+            Đã chọn {selectedRows.length} sản phẩm
+          </Typography>
+          <Button
+            variant='contained'
+            color='error'
+            startIcon={<DeleteForeverIcon />}
+            onClick={handleBulkDelete}
+            disabled={loading}
+          >
+            Xóa tất cả
+          </Button>
+        </Box>
+      )}
+
       <DataGrid
         rows={products}
         columns={columns}
         getRowId={(row) => row._id}
+        checkboxSelection
+        onRowSelectionModelChange={(newSelection) => {
+          // newSelection có cấu trúc {type: 'include', ids: Set} cho MUI X v8+
+          if (newSelection && newSelection.ids && newSelection.ids.size > 0) {
+            const selectedIds = Array.from(newSelection.ids)
+            setSelectedRows(selectedIds)
+          } else {
+            setSelectedRows([])
+          }
+        }}
+        rowSelectionModel={{ type: 'include', ids: new Set(selectedRows) }}
         initialState={{
           pagination: {
             paginationModel: { pageSize: 10 }
@@ -175,7 +244,6 @@ const ProductDataGrid = ({ products, onEdit, onDelete }) => {
         getRowClassName={() => 'cursor-pointer hover:bg-gray-50'}
         disableRowSelectionOnClick={false}
         disableDensitySelector
-        checkboxSelection
         rowHeight={70}
         sx={{
           '& .MuiDataGrid-row': {
@@ -219,7 +287,7 @@ const ProductDataGrid = ({ products, onEdit, onDelete }) => {
             minHeight: '52px'
           }
         }}
-        loading={false}
+        loading={loading}
       />
     </Paper>
   )

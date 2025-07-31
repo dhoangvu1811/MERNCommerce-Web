@@ -23,6 +23,7 @@ const ProductTable = () => {
     loading,
     pagination,
     handleDeleteProduct,
+    handleBulkDeleteProduct,
     handleProductSuccess,
     handlePageChange,
     handleItemsPerPageChange,
@@ -83,6 +84,18 @@ const ProductTable = () => {
     setAddDrawerOpen(false)
   }
 
+  // Xử lý bulk delete
+  const handleBulkDelete = async (selectedIds) => {
+    if (selectedIds.length === 0) return
+
+    try {
+      // Sử dụng API bulk delete thay vì xóa từng sản phẩm
+      await handleBulkDeleteProduct(selectedIds)
+    } catch {
+      // Lỗi sẽ được xử lý trong handleBulkDeleteProduct thông qua toast
+    }
+  }
+
   // Tìm kiếm sản phẩm khi searchTerm thay đổi
   const handleSearchChange = (newSearchTerm) => {
     setSearchTerm(newSearchTerm)
@@ -126,6 +139,7 @@ const ProductTable = () => {
         loading={loading}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
+        onBulkDelete={handleBulkDelete}
       />
 
       {/* Delete Confirmation Dialog */}

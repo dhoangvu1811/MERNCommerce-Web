@@ -73,6 +73,18 @@ export const deleteProduct = async (productId) => {
 }
 
 /**
+ * Xóa nhiều sản phẩm cùng lúc
+ * @param {Array<string>} productIds - Mảng các ID sản phẩm cần xóa
+ * @returns {Promise<Object>} Response xác nhận xóa nhiều sản phẩm
+ */
+export const deleteMultipleProducts = async (productIds) => {
+  const response = await axiosInstance.post('/products/deleteSelected', {
+    data: { productIds }
+  })
+  return response.data
+}
+
+/**
  * Lấy tất cả loại sản phẩm
  * @returns {Promise<Object>} Response với danh sách các loại sản phẩm
  */
@@ -90,10 +102,14 @@ export const uploadProductImage = async (imageFile) => {
   const formData = new FormData()
   formData.append('image', imageFile)
 
-  const response = await axiosInstance.post('/products/upload-image', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
+  const response = await axiosInstance.post(
+    '/products/upload-image',
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     }
-  })
+  )
   return response.data
 }
