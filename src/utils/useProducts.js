@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getProducts, deleteProduct } from '../apis'
+import { getProducts, deleteProduct, deleteMultipleProducts } from '../apis'
 import { toast } from 'react-toastify'
 
 /**
@@ -53,6 +53,31 @@ export const useProducts = () => {
     await fetchProducts()
   }
 
+  // Xóa nhiều sản phẩm cùng lúc
+  const handleBulkDeleteProduct = async (productIds) => {
+    try {
+      setLoading(true)
+      const response = await deleteMultipleProducts(productIds)
+
+      if (response.code === 200) {
+        // Xóa các sản phẩm khỏi state local
+        setProducts((prev) =>
+          prev.filter((product) => !productIds.includes(product._id))
+        )
+
+        toast.success(`Đã xóa thành công ${productIds.length} sản phẩm!`, {
+          autoClose: 3000
+        })
+
+        // Refresh lại data để đảm bảo đồng bộ
+        await fetchProducts()
+      }
+      // Không cần toast.error ở đây vì đã có interceptor xử lý
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Thay đổi trang
   const handlePageChange = async (newPage) => {
     setPagination((prev) => ({ ...prev, page: newPage }))
@@ -92,6 +117,7 @@ export const useProducts = () => {
     pagination,
     fetchProducts,
     handleDeleteProduct,
+    handleBulkDeleteProduct,
     handleProductSuccess,
     handlePageChange,
     handleItemsPerPageChange,
