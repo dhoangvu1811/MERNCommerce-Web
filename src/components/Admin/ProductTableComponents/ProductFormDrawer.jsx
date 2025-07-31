@@ -96,36 +96,43 @@ const ProductFormDrawer = ({
   const handleFormSubmit = async (data) => {
     setIsLoading(true)
 
-    let response
+    try {
+      let response
 
-    if (product) {
-      // Cập nhật sản phẩm
-      response = await updateProduct(product._id, data)
-      toast.success('Cập nhật sản phẩm thành công!')
-    } else {
-      // Tạo sản phẩm mới
-      response = await createProduct(data)
-      toast.success('Thêm sản phẩm thành công!')
-    }
-
-    // Refresh danh sách productTypes nếu có type mới
-    if (isCustomType && data.type) {
-      const typesResponse = await getAllProductTypes()
-      if (typesResponse.code === 200 && typesResponse.data) {
-        setProductTypes(typesResponse.data)
+      if (product) {
+        // Cập nhật sản phẩm
+        response = await updateProduct(product._id, data)
+        toast.success('Cập nhật sản phẩm thành công!')
+      } else {
+        // Tạo sản phẩm mới
+        response = await createProduct(data)
+        toast.success('Thêm sản phẩm thành công!')
       }
-    }
 
-    // Gọi callback để refresh data table
-    if (onSubmit) {
-      onSubmit(response.data)
-    }
+      // Refresh danh sách productTypes nếu có type mới
+      if (isCustomType && data.type) {
+        const typesResponse = await getAllProductTypes()
+        if (typesResponse.code === 200 && typesResponse.data) {
+          setProductTypes(typesResponse.data)
+        }
+      }
 
-    // Reset form và đóng drawer
-    reset()
-    setIsCustomType(false)
-    onClose()
-    setIsLoading(false)
+      // Gọi callback để refresh data table
+      if (onSubmit) {
+        onSubmit(response.data)
+      }
+
+      // Reset form và đóng drawer chỉ khi thành công
+      reset()
+      setIsCustomType(false)
+      onClose()
+    } catch {
+      // Lỗi đã được xử lý bởi axios interceptor (toast.error)
+      // Không cần thêm xử lý gì, chỉ để form không đóng khi có lỗi
+    } finally {
+      // Luôn luôn reset loading state
+      setIsLoading(false)
+    }
   }
 
   const handleCancel = () => {
