@@ -5,6 +5,8 @@ import CategoryPage from './pages/CategoryPage'
 import ProductDetail from './pages/ProductDetail'
 import UserAccount from './pages/UserAccount'
 import CartPage from './pages/CartPage'
+import SupportCenter from './pages/SupportCenter'
+import MyOrders from './pages/MyOrders'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import MainLayout from './layouts/MainLayout'
 
@@ -29,7 +31,9 @@ function App() {
             <Route path='/category/:categoryId' element={<CategoryPage />} />
             <Route path='/product/:productId' element={<ProductDetail />} />
             <Route path='/account' element={<UserAccount />} />
+            <Route path='/orders' element={<MyOrders />} />
             <Route path='/cart' element={<CartPage />} />
+            <Route path='/support' element={<SupportCenter />} />
           </Route>
         </Routes>
       </Box>
