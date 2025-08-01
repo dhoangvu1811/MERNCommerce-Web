@@ -176,7 +176,12 @@ const ProductDataGrid = ({
 
   return (
     <Paper
-      sx={{ height: 'calc(100vh - 230px)', width: '100%', overflow: 'hidden' }}
+      sx={{
+        width: '100%',
+        overflow: 'hidden',
+        height: 'auto',
+        minHeight: '400px'
+      }}
     >
       {/* Bulk Actions Toolbar */}
       {selectedRows && selectedRows.length > 0 && (
@@ -245,6 +250,7 @@ const ProductDataGrid = ({
         disableRowSelectionOnClick={false}
         disableDensitySelector
         rowHeight={70}
+        autoHeight
         sx={{
           '& .MuiDataGrid-row': {
             minHeight: '70px !important',

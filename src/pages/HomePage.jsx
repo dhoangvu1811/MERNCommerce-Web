@@ -20,17 +20,17 @@ function HomePage() {
 
             {/* Featured products */}
             <Box sx={{ mb: 6 }}>
-              <ProductList title='Sản phẩm nổi bật' />
+              <ProductList title='Sản phẩm nổi bật' limit={8} sort='rating' />
             </Box>
 
             {/* New arrivals */}
             <Box sx={{ mb: 6 }}>
-              <ProductList title='Hàng mới về' />
+              <ProductList title='Hàng mới về' limit={8} sort='createdAt' />
             </Box>
 
             {/* Best selling */}
             <Box>
-              <ProductList title='Bán chạy nhất' />
+              <ProductList title='Bán chạy nhất' limit={8} sort='selled' />
             </Box>
           </Grid>
         </Grid>

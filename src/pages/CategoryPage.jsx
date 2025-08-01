@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import {
@@ -5,30 +6,17 @@ import {
   Container,
   Box,
   Typography,
-  useMediaQuery,
-  useTheme,
   Breadcrumbs,
   Link,
-  Button
+  Button,
+  useMediaQuery,
+  useTheme
 } from '@mui/material'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import FilterAltIcon from '@mui/icons-material/FilterAlt'
 import FilterSidebar from '../components/Filter/FilterSidebar'
 import ProductList from '../components/Product/ProductList'
 import ProductSorting from '../components/Product/ProductSorting'
-import FilterAltIcon from '@mui/icons-material/FilterAlt'
-
-// Sample products data
-const sampleProducts = [
-  // ... (we'll use the existing products from ProductList)
-]
-
-// Sample categories data
-const categories = {
-  1: { id: 1, name: 'Điện thoại', parentId: null },
-  2: { id: 2, name: 'Laptop', parentId: null },
-  3: { id: 3, name: 'Phụ kiện', parentId: null },
-  4: { id: 4, name: 'Thời trang', parentId: null }
-}
 
 function CategoryPage() {
   const { categoryId } = useParams()
@@ -37,12 +25,16 @@ function CategoryPage() {
   const [filterVisible, setFilterVisible] = useState(!isMobile)
   const [activeFilters, setActiveFilters] = useState({})
   const [sortBy, setSortBy] = useState('popular')
+  const [totalProducts, setTotalProducts] = useState(0)
 
-  // Get current category
-  const category = categories[categoryId] || {
-    id: 1,
-    name: 'Sản phẩm',
-    parentId: null
+  // Decode category type từ URL params
+  const categoryType = decodeURIComponent(categoryId || '')
+  const categoryName = categoryType || 'Sản phẩm'
+
+  // Get current category - không cần categories object nữa vì dùng URL param
+  const category = {
+    name: categoryName,
+    type: categoryType
   }
 
   const toggleFilter = () => {
@@ -62,6 +54,31 @@ function CategoryPage() {
 
   const handleSortChange = (value) => {
     setSortBy(value)
+  }
+
+  // Tạo sort parameter dựa trên sortBy value
+  const getSortParam = (sortValue) => {
+    switch (sortValue) {
+      case 'price_asc':
+        return 'price_asc'
+      case 'price_desc':
+        return 'price_desc'
+      case 'rating_desc':
+        return 'rating_desc'
+      case 'name_asc':
+        return 'name_asc'
+      case 'name_desc':
+        return 'name_desc'
+      case 'newest':
+        return 'selled_desc'
+      case 'popular':
+      default:
+        return 'selled_desc'
+    }
+  }
+
+  const handleProductCountChange = (count) => {
+    setTotalProducts(count)
   }
 
   return (
@@ -105,7 +122,13 @@ function CategoryPage() {
         <Grid container spacing={3}>
           {/* Sidebar with filters */}
           {(filterVisible || !isMobile) && (
-            <Grid size={{ xs: 12, md: 3, lg: 2.5 }}>
+            <Grid
+              size={{
+                xs: 12,
+                md: 3,
+                lg: 2.5
+              }}
+            >
               <FilterSidebar
                 onFilterChange={handleFilterChange}
                 isFilterVisible={filterVisible}
@@ -124,12 +147,19 @@ function CategoryPage() {
           >
             {/* Sorting options */}
             <ProductSorting
-              totalProducts='65'
+              totalProducts={totalProducts}
               onSortChange={handleSortChange}
+              currentSort={sortBy}
             />
 
             {/* Product grid */}
-            <ProductList title='' />
+            <ProductList
+              title=''
+              type={categoryType}
+              sort={getSortParam(sortBy)}
+              limit={20}
+              onProductCountChange={handleProductCountChange}
+            />
           </Grid>
         </Grid>
       </Container>

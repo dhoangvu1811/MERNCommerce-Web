@@ -1,59 +1,106 @@
-import { Grid, Typography, Box, Container } from '@mui/material'
+import {
+  Grid,
+  Typography,
+  Box,
+  Container,
+  CircularProgress,
+  Alert
+} from '@mui/material'
+import { useState, useEffect } from 'react'
 import ProductCard from './ProductCard'
+import { getProducts } from '../../apis/productApi'
 
-// Sample product data
-const products = [
-  {
-    id: 1,
-    name: 'iPhone 14 Pro Max',
-    image: 'https://source.unsplash.com/random/300x300/?iphone',
-    price: 32990000,
-    rating: 4.8,
-    numReviews: 125
-  },
-  {
-    id: 2,
-    name: 'Samsung Galaxy S23 Ultra',
-    image: 'https://source.unsplash.com/random/300x300/?samsung',
-    price: 29990000,
-    rating: 4.6,
-    numReviews: 98
-  },
-  {
-    id: 3,
-    name: 'MacBook Air M2',
-    image: 'https://source.unsplash.com/random/300x300/?macbook',
-    price: 27990000,
-    rating: 4.9,
-    numReviews: 87
-  },
-  {
-    id: 4,
-    name: 'Sony WH-1000XM5',
-    image: 'https://source.unsplash.com/random/300x300/?headphones',
-    price: 8990000,
-    rating: 4.7,
-    numReviews: 56
-  },
-  {
-    id: 5,
-    name: 'iPad Pro 11',
-    image: 'https://source.unsplash.com/random/300x300/?ipad',
-    price: 22990000,
-    rating: 4.5,
-    numReviews: 42
-  },
-  {
-    id: 6,
-    name: 'Apple Watch Series 8',
-    image: 'https://source.unsplash.com/random/300x300/?applewatch',
-    price: 10990000,
-    rating: 4.4,
-    numReviews: 31
+function ProductList({
+  title = 'Sản phẩm nổi bật',
+  limit = 8,
+  type = null,
+  sort = null,
+  onProductCountChange = null
+}) {
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const params = {
+          limit,
+          page: 1
+        }
+
+        if (type) params.type = type
+        if (sort) params.sort = sort
+
+        const response = await getProducts(params)
+
+        if (response.code === 200) {
+          setProducts(response.data.products || [])
+          // Callback về số lượng sản phẩm cho parent component
+          if (onProductCountChange) {
+            onProductCountChange(response.data.products?.length || 0)
+          }
+        } else {
+          setError('Không thể tải danh sách sản phẩm')
+        }
+      } catch {
+        setError('Có lỗi xảy ra khi tải dữ liệu')
+        // Có thể log error cho debugging nếu cần
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [limit, type, sort, onProductCountChange])
+
+  if (loading) {
+    return (
+      <Container maxWidth='xl' disableGutters>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant='h5' component='h2' fontWeight='bold'>
+            {title}
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress />
+        </Box>
+      </Container>
+    )
   }
-]
 
-function ProductList({ title = 'Sản phẩm nổi bật' }) {
+  if (error) {
+    return (
+      <Container maxWidth='xl' disableGutters>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant='h5' component='h2' fontWeight='bold'>
+            {title}
+          </Typography>
+        </Box>
+        <Alert severity='error' sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      </Container>
+    )
+  }
+
+  if (products.length === 0) {
+    return (
+      <Container maxWidth='xl' disableGutters>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant='h5' component='h2' fontWeight='bold'>
+            {title}
+          </Typography>
+        </Box>
+        <Alert severity='info' sx={{ mb: 2 }}>
+          Không có sản phẩm nào để hiển thị
+        </Alert>
+      </Container>
+    )
+  }
   return (
     <Container maxWidth='xl' disableGutters>
       <Box sx={{ mb: 3 }}>
@@ -64,7 +111,7 @@ function ProductList({ title = 'Sản phẩm nổi bật' }) {
 
       <Grid container spacing={3}>
         {products.map((product) => (
-          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={product.id}>
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={product._id}>
             <ProductCard product={product} />
           </Grid>
         ))}

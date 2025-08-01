@@ -1,17 +1,9 @@
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  Divider,
-  useTheme
-} from '@mui/material'
+import { Box, Container, Grid, Typography, Divider, Link } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import ContactInfo from './ContactInfo'
 import SocialLinks from './SocialLinks'
 
 function Footer() {
-  const theme = useTheme()
-
   return (
     <Box
       sx={{
@@ -61,16 +53,26 @@ function Footer() {
             <Typography variant='h6' sx={{ mb: 2, fontWeight: 'bold' }}>
               Hỗ trợ
             </Typography>
-            {[
-              'Trung tâm trợ giúp',
-              'Hướng dẫn mua hàng',
-              'Vận chuyển',
-              'Theo dõi đơn hàng'
-            ].map((text, index) => (
-              <Typography key={index} variant='body2' sx={{ mb: 1 }}>
-                {text}
-              </Typography>
-            ))}
+            <Link
+              component={RouterLink}
+              to='/support'
+              variant='body2'
+              sx={{
+                display: 'block',
+                mb: 1,
+                textDecoration: 'none',
+                '&:hover': { color: 'primary.main' }
+              }}
+            >
+              Trung tâm trợ giúp
+            </Link>
+            {['Hướng dẫn mua hàng', 'Vận chuyển', 'Theo dõi đơn hàng'].map(
+              (text, index) => (
+                <Typography key={index} variant='body2' sx={{ mb: 1 }}>
+                  {text}
+                </Typography>
+              )
+            )}
           </Grid>
         </Grid>
 
