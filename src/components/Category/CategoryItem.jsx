@@ -2,10 +2,13 @@ import { ListItem, ListItemIcon, ListItemText } from '@mui/material'
 import { Link } from 'react-router-dom'
 
 function CategoryItem({ category }) {
+  // Sử dụng type để tạo URL thay vì id
+  const categorySlug = encodeURIComponent(category.type || category.name)
+
   return (
     <ListItem
       component={Link}
-      to={`/category/${category.id}`}
+      to={`/category/${categorySlug}`}
       sx={{
         borderRadius: '8px',
         mb: 1,

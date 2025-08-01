@@ -6,7 +6,8 @@ import {
   Typography,
   Button,
   Rating,
-  Box
+  Box,
+  Chip
 } from '@mui/material'
 import { formatPrice } from '../../utils/formatUtils'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
@@ -32,7 +33,7 @@ function ProductCard({ product }) {
     >
       <Box
         component={Link}
-        to={`/product/${product.id}`}
+        to={`/product/${product._id}`}
         sx={{ textDecoration: 'none', color: 'inherit' }}
       >
         <CardMedia
@@ -54,18 +55,38 @@ function ProductCard({ product }) {
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <Rating
-              value={product.rating}
+              value={product.rating || 0}
               readOnly
               precision={0.5}
               size='small'
             />
             <Typography variant='body2' color='text.secondary' sx={{ ml: 0.5 }}>
-              ({product.numReviews})
+              ({product.numReviews || 0})
             </Typography>
           </Box>
-          <Typography variant='h6' color='primary' fontWeight='bold'>
-            {formatPrice(product.price)}
-          </Typography>
+          {/* Price Section */}
+          <Box>
+            <Typography variant='h6' color='primary' fontWeight='bold'>
+              {formatPrice(product.price)}
+            </Typography>
+            {product.discount > 0 && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ textDecoration: 'line-through' }}
+                >
+                  {formatPrice(Math.round(product.price / (1 - product.discount / 100)))}
+                </Typography>
+                <Chip
+                  label={`-${product.discount}%`}
+                  color='error'
+                  size='small'
+                  sx={{ fontWeight: 'bold', fontSize: '0.7rem', height: 20 }}
+                />
+              </Box>
+            )}
+          </Box>
         </CardContent>
       </Box>
 

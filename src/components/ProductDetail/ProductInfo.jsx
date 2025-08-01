@@ -17,10 +17,14 @@ import { formatPrice } from '../../utils/formatUtils'
 
 function ProductInfo({ product, similarProducts }) {
   const [showFullDescription, setShowFullDescription] = useState(false)
-  const [selectedColor, setSelectedColor] = useState(product.colors[0])
-  const [selectedStorage, setSelectedStorage] = useState(product.storage[0])
+  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || '')
+  const [selectedStorage, setSelectedStorage] = useState(
+    product.storage?.[0] || ''
+  )
 
-  const shortDescription = product.description.split('\n\n')[0] + '...'
+  const shortDescription = product.description
+    ? product.description.split('\n\n')[0] + '...'
+    : 'Chưa có mô tả'
 
   const handleColorSelect = (color) => {
     setSelectedColor(color)
@@ -93,45 +97,49 @@ function ProductInfo({ product, similarProducts }) {
       </Box>
       <Divider sx={{ my: 2 }} />
       {/* Colors */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
-          Màu sắc
-        </Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          {product.colors.map((color) => (
-            <Chip
-              key={color}
-              label={color}
-              onClick={() => handleColorSelect(color)}
-              color={selectedColor === color ? 'primary' : 'default'}
-              sx={{
-                borderRadius: 1,
-                fontWeight: selectedColor === color ? 'bold' : 'normal'
-              }}
-            />
-          ))}
+      {product.colors && product.colors.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
+            Màu sắc
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {product.colors.map((color) => (
+              <Chip
+                key={color}
+                label={color}
+                onClick={() => handleColorSelect(color)}
+                color={selectedColor === color ? 'primary' : 'default'}
+                sx={{
+                  borderRadius: 1,
+                  fontWeight: selectedColor === color ? 'bold' : 'normal'
+                }}
+              />
+            ))}
+          </Box>
         </Box>
-      </Box>
+      )}
       {/* Storage */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
-          Dung lượng
-        </Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          {product.storage.map((storage) => (
-            <Chip
-              key={storage}
-              label={storage}
-              onClick={() => handleStorageSelect(storage)}
-              color={selectedStorage === storage ? 'primary' : 'default'}
-              sx={{
-                borderRadius: 1,
-                fontWeight: selectedStorage === storage ? 'bold' : 'normal'
-              }}
-            />
-          ))}
+      {product.storage && product.storage.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
+            Dung lượng
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {product.storage.map((storage) => (
+              <Chip
+                key={storage}
+                label={storage}
+                onClick={() => handleStorageSelect(storage)}
+                color={selectedStorage === storage ? 'primary' : 'default'}
+                sx={{
+                  borderRadius: 1,
+                  fontWeight: selectedStorage === storage ? 'bold' : 'normal'
+                }}
+              />
+            ))}
+          </Box>
         </Box>
-      </Box>
+      )}
       <Divider sx={{ my: 2 }} /> {/* Product description */}
       <Box sx={{ mb: 3, minHeight: 150 }}>
         <Typography variant='subtitle1' fontWeight='bold' gutterBottom>

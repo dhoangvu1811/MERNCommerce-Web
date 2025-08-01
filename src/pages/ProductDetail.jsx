@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   Grid,
@@ -7,7 +7,9 @@ import {
   useTheme,
   useMediaQuery,
   Tabs,
-  Tab
+  Tab,
+  CircularProgress,
+  Alert
 } from '@mui/material'
 import ProductBreadcrumbs from '~/components/ProductDetail/ProductBreadcrumbs'
 import ProductGallery from '~/components/ProductDetail/ProductGallery'
@@ -15,45 +17,9 @@ import ProductInfo from '~/components/ProductDetail/ProductInfo'
 import ReviewSection from '~/components/ProductDetail/ReviewSection'
 import MobileBuyBox from '~/components/ProductDetail/MobileBuyBox'
 import BuyBox from '~/components/ProductDetail/BuyBox'
+import { getProductById } from '~/apis/productApi'
 
-// Sample product data
-const sampleProduct = {
-  id: 1,
-  name: 'iPhone 14 Pro Max 128GB',
-  price: 28990000,
-  originalPrice: 32990000,
-  discount: 12,
-  rating: 4.8,
-  numReviews: 183,
-  stock: 15,
-  sold: 256,
-  brand: 'Apple',
-  category: 'Điện thoại',
-  images: [
-    '/src/assets/products/iphone-1.jpg',
-    '/src/assets/products/iphone-2.jpg',
-    '/src/assets/products/iphone-3.jpg',
-    '/src/assets/products/iphone-4.jpg',
-    '/src/assets/products/iphone-5.jpg',
-    '/src/assets/products/detail.png',
-    '/src/assets/products/productimg.png'
-  ],
-  colors: ['Đen', 'Trắng', 'Vàng', 'Tím'],
-  storage: ['128GB', '256GB', '512GB', '1TB'],
-  description: `iPhone 14 Pro Max là chiếc điện thoại cao cấp nhất của Apple, mang đến những công nghệ đột phá và trải nghiệm cao cấp nhất cho người dùng.
-
-Dynamic Island là tính năng mới thay thế thiết kế "tai thỏ". Giờ đây, các thông báo và hoạt động sẽ hiển thị ở khu vực này một cách liền mạch và sinh động.
-
-Camera chính 48MP là một nâng cấp lớn, cho phép chụp ảnh sắc nét hơn, zoom quang học chất lượng cao và khả năng chụp thiếu sáng vượt trội.
-
-Chip A16 Bionic mới nhất của Apple mang đến hiệu suất mạnh mẽ, đồng thời tiết kiệm năng lượng hơn, cho phép bạn sử dụng điện thoại cả ngày dài.
-
-Màn hình Always-On là tính năng mới trên dòng iPhone 14 Pro, giúp bạn xem thông tin nhanh chóng mà không cần mở khóa máy.
-
-iOS 16 mang đến nhiều tính năng mới như tùy chỉnh màn hình khóa, gửi tin nhắn đã sửa, và nhiều tính năng riêng tư và bảo mật hơn.`
-}
-
-// Sample reviews
+// Sample reviews - sẽ được thay thế bằng API sau này
 const sampleReviews = [
   {
     id: 1,
@@ -143,17 +109,94 @@ const similarProducts = [
 ]
 
 function ProductDetail() {
-  // eslint-disable-next-line no-unused-vars
   const { productId } = useParams()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
-  // Product data - would normally fetch based on productId
-  const product = sampleProduct
+  const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState(0)
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!productId) {
+        setError('ID sản phẩm không hợp lệ')
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError(null)
+
+        const response = await getProductById(productId)
+
+        if (response.code === 200) {
+          // Transform API data để phù hợp với component hiện tại
+          const transformedProduct = {
+            ...response.data,
+            images: response.data.image ? [response.data.image] : [],
+            colors: ['Đen', 'Trắng'], // Tạm thời hardcode, sẽ cập nhật API sau
+            storage: ['128GB', '256GB'], // Tạm thời hardcode, sẽ cập nhật API sau
+            numReviews: 0, // Sẽ được cập nhật khi có API reviews
+            stock: response.data.countInStock,
+            sold: response.data.selled || 0,
+            brand: 'N/A', // Sẽ được thêm vào API sau
+            category: response.data.type
+          }
+          setProduct(transformedProduct)
+        } else {
+          setError('Không thể tải thông tin sản phẩm')
+        }
+      } catch {
+        setError('Có lỗi xảy ra khi tải dữ liệu')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProduct()
+  }, [productId])
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue)
+  }
+
+  if (loading) {
+    return (
+      <Box sx={{ py: 4 }}>
+        <Container maxWidth='xl'>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress size={60} />
+          </Box>
+        </Container>
+      </Box>
+    )
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ py: 4 }}>
+        <Container maxWidth='xl'>
+          <Alert severity='error' sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        </Container>
+      </Box>
+    )
+  }
+
+  if (!product) {
+    return (
+      <Box sx={{ py: 4 }}>
+        <Container maxWidth='xl'>
+          <Alert severity='info' sx={{ mb: 2 }}>
+            Không tìm thấy sản phẩm
+          </Alert>
+        </Container>
+      </Box>
+    )
   }
 
   return (
