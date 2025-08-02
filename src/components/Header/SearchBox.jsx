@@ -10,7 +10,9 @@ function SearchBox() {
         display: 'flex',
         alignItems: 'center',
         width: { xs: '100%', sm: '300px', md: '400px' },
-        borderRadius: '20px'
+        maxWidth: '100%',
+        borderRadius: '20px',
+        backgroundColor: 'background.paper'
       }}
     >
       <InputBase

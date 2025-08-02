@@ -14,7 +14,7 @@ function Logo() {
           alignItems: 'center'
         }}
       >
-        <StorefrontIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
+        <StorefrontIcon sx={{ display: { xs: 'flex', md: 'flex' }, mr: 1 }} />
         <Typography
           variant='h6'
           noWrap
@@ -22,7 +22,8 @@ function Logo() {
             fontWeight: 700,
             letterSpacing: '.1rem',
             color: 'inherit',
-            textDecoration: 'none'
+            textDecoration: 'none',
+            fontSize: { xs: '1.1rem', sm: '1.25rem' }
           }}
         >
           MyShop

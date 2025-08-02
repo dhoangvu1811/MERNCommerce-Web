@@ -12,13 +12,21 @@ function Header() {
   return (
     <AppBar position='static' color='default' elevation={1}>
       <Container maxWidth='xl'>
-        <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
+        {/* Main Toolbar */}
+        <Toolbar
+          disableGutters
+          sx={{
+            justifyContent: 'space-between',
+            minHeight: { xs: '56px', sm: '64px' },
+            py: { xs: 1, md: 0 }
+          }}
+        >
           {/* Logo section */}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             <Logo />
           </Box>
 
-          {/* SearchBox - centered on desktop, below logo on mobile */}
+          {/* SearchBox - centered on desktop only */}
           <Box
             sx={{
               display: { xs: 'none', md: 'flex' },
@@ -31,26 +39,32 @@ function Header() {
           </Box>
 
           {/* Navigation Icons and Mode Select */}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              flexShrink: 0,
+              gap: { xs: 0.5, sm: 1 }
+            }}
+          >
             <NavIcons />
             <ModeSelect />
           </Box>
-
-          {/* SearchBox on mobile - full width below toolbar */}
-          {isMobile && (
-            <Box
-              sx={{
-                display: { xs: 'flex', md: 'none' },
-                width: '100%',
-                mt: 1,
-                mb: 1,
-                justifyContent: 'center'
-              }}
-            >
-              <SearchBox />
-            </Box>
-          )}
         </Toolbar>
+
+        {/* SearchBox on mobile - separate container */}
+        {isMobile && (
+          <Box
+            sx={{
+              display: { xs: 'block', md: 'none' },
+              px: 2,
+              pb: 2,
+              pt: 0
+            }}
+          >
+            <SearchBox />
+          </Box>
+        )}
       </Container>
     </AppBar>
   )
