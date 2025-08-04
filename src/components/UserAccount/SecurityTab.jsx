@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { useForm, Controller } from 'react-hook-form'
+import { updatePassword } from '~/redux/slices/userSlice'
 import {
   Box,
   TextField,
@@ -9,9 +11,7 @@ import {
   Divider,
   Paper,
   InputAdornment,
-  IconButton,
-  Snackbar,
-  Alert
+  IconButton
 } from '@mui/material'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
@@ -50,16 +50,12 @@ const PasswordField = ({
 }
 
 const SecurityTab = () => {
+  const dispatch = useDispatch()
+
   const [showPasswords, setShowPasswords] = useState({
     currentPassword: false,
     newPassword: false,
     confirmPassword: false
-  })
-
-  const [notification, setNotification] = useState({
-    open: false,
-    message: '',
-    severity: 'success'
   })
 
   const { control, handleSubmit, reset, watch } = useForm({
@@ -78,26 +74,21 @@ const SecurityTab = () => {
     }))
   }
 
-  const onSubmit = () => {
-    // Here you would normally send the data to your backend API
-    // For demonstration, we'll just show a success message
+  const onSubmit = async (data) => {
+    try {
+      await dispatch(
+        updatePassword({
+          currentPassword: data.currentPassword,
+          newPassword: data.newPassword,
+          confirmPassword: data.confirmPassword
+        })
+      ).unwrap()
 
-    // Show success notification
-    setNotification({
-      open: true,
-      message: 'Password changed successfully',
-      severity: 'success'
-    })
-
-    // Reset form
-    reset()
-  }
-
-  const handleCloseNotification = () => {
-    setNotification({
-      ...notification,
-      open: false
-    })
+      // Reset form sau khi thành công
+      reset()
+    } catch {
+      // Error đã được hiển thị bởi interceptor
+    }
   }
 
   return (
@@ -199,22 +190,6 @@ const SecurityTab = () => {
           </Grid>
         </Grid>
       </Box>
-
-      <Snackbar
-        open={notification.open}
-        autoHideDuration={6000}
-        onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={handleCloseNotification}
-          severity={notification.severity}
-          variant='filled'
-          sx={{ width: '100%' }}
-        >
-          {notification.message}
-        </Alert>
-      </Snackbar>
     </Paper>
   )
 }
