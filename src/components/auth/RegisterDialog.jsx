@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types'
-import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { useForm } from 'react-hook-form'
+import { useState } from 'react'
+import { registerUser } from '~/redux/slices/userSlice'
 import {
   Dialog,
   DialogContent,
@@ -18,16 +20,18 @@ import PersonOutline from '@mui/icons-material/PersonOutline'
 import AuthFormField from './AuthFormField'
 
 const RegisterDialog = ({ open, onClose, onSuccess, onSwitchToLogin }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const dispatch = useDispatch()
+  const [isLoading, setIsLoading] = useState(false)
 
   const {
     control,
     handleSubmit,
     formState: { isValid },
-    watch
+    watch,
+    reset
   } = useForm({
     defaultValues: {
-      fullName: '',
+      name: '',
       email: '',
       password: '',
       confirmPassword: ''
@@ -39,21 +43,20 @@ const RegisterDialog = ({ open, onClose, onSuccess, onSwitchToLogin }) => {
   const password = watch('password')
 
   const onSubmit = async (data) => {
-    setIsSubmitting(true)
     try {
-      // Simulate API call with timeout
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      setIsLoading(true)
+      await dispatch(registerUser(data)).unwrap()
 
       // Call success callback if provided
-      onSuccess && onSuccess(data)
+      onSuccess && onSuccess()
 
-      // Close the dialog
+      // Reset form and close dialog
+      reset()
       onClose()
     } catch {
-      // Handle registration error - could add error state here
-      // For production, use proper error logging service
+      // Error đã được handle bởi interceptor
     } finally {
-      setIsSubmitting(false)
+      setIsLoading(false)
     }
   }
 
@@ -101,7 +104,7 @@ const RegisterDialog = ({ open, onClose, onSuccess, onSwitchToLogin }) => {
         <DialogContent sx={{ p: 3, pt: 4, pb: 4 }}>
           <Stack spacing={3}>
             <AuthFormField
-              name='fullName'
+              name='name'
               label='Họ và tên'
               control={control}
               autoComplete='name'
@@ -149,7 +152,7 @@ const RegisterDialog = ({ open, onClose, onSuccess, onSwitchToLogin }) => {
               label='Xác nhận mật khẩu'
               type='password'
               control={control}
-              autoComplete='new-password'
+              autoComplete='confirm-password'
               icon={<LockOutlined color='action' />}
               rules={{
                 required: 'Vui lòng xác nhận mật khẩu',
@@ -197,7 +200,7 @@ const RegisterDialog = ({ open, onClose, onSuccess, onSwitchToLogin }) => {
             type='submit'
             variant='contained'
             color='primary'
-            disabled={isSubmitting || !isValid}
+            disabled={isLoading || !isValid}
             sx={{
               px: 3,
               py: 1,
@@ -206,7 +209,7 @@ const RegisterDialog = ({ open, onClose, onSuccess, onSwitchToLogin }) => {
               boxShadow: 2
             }}
           >
-            {isSubmitting ? 'Đang xử lý...' : 'Đăng ký'}
+            {isLoading ? 'Đang xử lý...' : 'Đăng ký'}
           </Button>
         </DialogActions>
       </Box>
