@@ -1,5 +1,9 @@
 /* eslint-disable indent */
 import { useState, useRef } from 'react'
+import { useDispatch } from 'react-redux'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '~/hooks/useAuth'
+import { logoutUser } from '~/redux/slices/userSlice'
 import {
   Badge,
   IconButton,
@@ -21,16 +25,16 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import ReceiptIcon from '@mui/icons-material/Receipt'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import LogoutIcon from '@mui/icons-material/Logout'
-import { Link } from 'react-router-dom'
 import LoginDialog from '../auth/LoginDialog'
 import RegisterDialog from '../auth/RegisterDialog'
 
 function NavIcons() {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const { isAuthenticated, user } = useAuth()
+
   // Placeholder for cart items count
   const cartItemsCount = 2
-
-  // Mock authentication state (replace with your actual auth logic)
-  const isLoggedIn = localStorage.getItem('isAuthenticated') === 'true'
 
   // Account dropdown state
   const [open, setOpen] = useState(false)
@@ -103,8 +107,17 @@ function NavIcons() {
   }
 
   const handleLoginSuccess = () => {
-    // This will refresh the page or update the auth state
-    window.location.reload()
+    // Auth state sẽ được tự động cập nhật thông qua Redux
+    // Không cần reload trang vì useAuth hook sẽ tự động update
+    setLoginDialogOpen(false)
+  }
+
+  const handleLogout = async () => {
+    await dispatch(logoutUser()).unwrap()
+
+    handleClose(null)
+
+    navigate('/')
   }
 
   return (
@@ -197,7 +210,7 @@ function NavIcons() {
                       </Typography>
                     </Box>
 
-                    {isLoggedIn ? (
+                    {isAuthenticated ? (
                       // Logged in user menu items
                       <Box component='div'>
                         <MenuItem
@@ -244,15 +257,7 @@ function NavIcons() {
 
                         <Divider />
 
-                        <MenuItem
-                          onClick={() => {
-                            localStorage.removeItem('isAuthenticated')
-                            localStorage.removeItem('userRole')
-                            localStorage.removeItem('userName')
-                            handleClose(null) // Pass null to avoid the target error
-                          }}
-                          sx={{ py: 1.5 }}
-                        >
+                        <MenuItem onClick={handleLogout} sx={{ py: 1.5 }}>
                           <ListItemIcon>
                             <LogoutIcon fontSize='small' color='error' />
                           </ListItemIcon>

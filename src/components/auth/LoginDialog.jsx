@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types'
-import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { useForm } from 'react-hook-form'
+import { useState } from 'react'
+import { loginUser } from '~/redux/slices/userSlice'
 import {
   Dialog,
   DialogContent,
@@ -17,12 +19,14 @@ import LockOutlined from '@mui/icons-material/LockOutlined'
 import AuthFormField from './AuthFormField'
 
 const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const dispatch = useDispatch()
+  const [isLoading, setIsLoading] = useState(false)
 
   const {
     control,
     handleSubmit,
-    formState: { isValid }
+    formState: { isValid },
+    reset
   } = useForm({
     defaultValues: {
       email: '',
@@ -32,26 +36,20 @@ const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
   })
 
   const onSubmit = async (data) => {
-    setIsSubmitting(true)
     try {
-      // Simulate API call with timeout
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Save auth data to localStorage for demo
-      localStorage.setItem('isAuthenticated', 'true')
-      localStorage.setItem('userRole', 'user')
-      localStorage.setItem('userName', data.email.split('@')[0])
+      setIsLoading(true)
+      await dispatch(loginUser(data)).unwrap()
 
       // Call success callback if provided
-      onSuccess && onSuccess(data)
+      onSuccess && onSuccess()
 
-      // Close the dialog
+      // Reset form and close dialog
+      reset()
       onClose()
     } catch {
-      // Handle login error - could add error state here
-      // For production, use proper error logging service
+      // Error đã được handle bởi interceptor
     } finally {
-      setIsSubmitting(false)
+      setIsLoading(false)
     }
   }
 
@@ -174,7 +172,7 @@ const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
             type='submit'
             variant='contained'
             color='primary'
-            disabled={isSubmitting || !isValid}
+            disabled={isLoading || !isValid}
             sx={{
               px: 3,
               py: 1,
@@ -183,7 +181,7 @@ const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
               boxShadow: 2
             }}
           >
-            {isSubmitting ? 'Đang xử lý...' : 'Đăng nhập'}
+            {isLoading ? 'Đang xử lý...' : 'Đăng nhập'}
           </Button>
         </DialogActions>
       </Box>
