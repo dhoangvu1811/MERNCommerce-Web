@@ -1,5 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useDispatch } from 'react-redux'
 import { useForm, Controller } from 'react-hook-form'
+import { useAuth } from '~/hooks/useAuth'
+import { updateCurrentUser } from '~/redux/slices/userSlice'
 import {
   Box,
   TextField,
@@ -9,56 +12,78 @@ import {
   Avatar,
   IconButton,
   Divider,
-  Snackbar,
-  Alert,
   Paper
 } from '@mui/material'
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera'
 
 const ProfileTab = () => {
-  const [avatar, setAvatar] = useState('/src/assets/avatar-placeholder.jpg')
-  const [notification, setNotification] = useState({
-    open: false,
-    message: '',
-    severity: 'success'
-  })
+  const dispatch = useDispatch()
+  const { user } = useAuth()
+  const [avatar, setAvatar] = useState('')
+  const [avatarFile, setAvatarFile] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const { control, handleSubmit } = useForm({
+  // Profile form
+  const { control, handleSubmit, setValue } = useForm({
     defaultValues: {
-      firstName: 'Thanh',
-      lastName: 'Dinh',
-      email: 'thanhdinh201179@gmail.com',
-      phone: '0987654321',
-      address: '123 Le Loi Street, District 1, Ho Chi Minh City'
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      address: ''
     },
     mode: 'onChange'
   })
 
+  useEffect(() => {
+    if (user) {
+      const { name } = user
+      if (name) {
+        const nameParts = name.trim().split(' ')
+        const firstName = nameParts[nameParts.length - 1] || ''
+        const lastName = nameParts[0] || ''
+        setValue('firstName', firstName)
+        setValue('lastName', lastName)
+      }
+      setValue('email', user.email || '')
+      setValue('phone', user.phone || '')
+      setValue('address', user.address || '')
+      setAvatar(user.avatar || '/src/assets/avatar-placeholder.jpg')
+    }
+  }, [user, setValue])
+
   const handleAvatarChange = (e) => {
     if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      setAvatarFile(file)
+
       const fileReader = new FileReader()
       fileReader.onload = (e) => {
         setAvatar(e.target.result)
       }
-      fileReader.readAsDataURL(e.target.files[0])
+      fileReader.readAsDataURL(file)
     }
   }
 
-  const onSubmit = () => {
-    // Here you would normally send the data to your backend API
+  const onSubmit = async (data) => {
+    try {
+      setIsLoading(true)
+      const { firstName, lastName, ...dataRest } = data
+      const formData = {
+        ...dataRest,
+        name: `${lastName} ${firstName}`.trim(),
+        avatar: avatarFile
+      }
 
-    // setNotification({
-    //   open: true,
-    //   message: 'Profile updated successfully',
-    //   severity: 'success'
-    // })
-  }
+      await dispatch(updateCurrentUser(formData)).unwrap()
 
-  const handleCloseNotification = () => {
-    setNotification({
-      ...notification,
-      open: false
-    })
+      // Reset avatar file sau khi upload thành công
+      setAvatarFile(null)
+    } catch {
+      // Error đã được hiển thị bởi interceptor
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -233,30 +258,15 @@ const ProfileTab = () => {
                   color='primary'
                   size='large'
                   sx={{ mt: 2 }}
+                  disabled={isLoading}
                 >
-                  Save Changes
+                  {isLoading ? 'Saving...' : 'Save Changes'}
                 </Button>
               </Grid>
             </Grid>
           </Paper>
         </Grid>
       </Grid>
-
-      <Snackbar
-        open={notification.open}
-        autoHideDuration={6000}
-        onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={handleCloseNotification}
-          severity={notification.severity}
-          variant='filled'
-          sx={{ width: '100%' }}
-        >
-          {notification.message}
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }
