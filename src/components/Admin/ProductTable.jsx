@@ -7,7 +7,7 @@ import {
   ProductDataGrid,
   ProductFormDrawer
 } from './ProductTableComponents'
-import { useProducts } from '~/utils/useProducts'
+import { useProducts } from '~/hooks/useProducts'
 
 const ProductTable = () => {
   const [searchTerm, setSearchTerm] = useState('')
