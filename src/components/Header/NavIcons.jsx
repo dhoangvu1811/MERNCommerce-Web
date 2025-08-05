@@ -1,9 +1,7 @@
 /* eslint-disable indent */
 import { useState, useRef } from 'react'
-import { useDispatch } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '~/hooks/useAuth'
-import { logoutUser } from '~/redux/slices/userSlice'
 import {
   Badge,
   IconButton,
@@ -25,13 +23,13 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import ReceiptIcon from '@mui/icons-material/Receipt'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import LogoutIcon from '@mui/icons-material/Logout'
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import LoginDialog from '../auth/LoginDialog'
 import RegisterDialog from '../auth/RegisterDialog'
 
 function NavIcons() {
-  const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated, isAdmin, logout } = useAuth()
 
   // Placeholder for cart items count
   const cartItemsCount = 2
@@ -113,10 +111,8 @@ function NavIcons() {
   }
 
   const handleLogout = async () => {
-    await dispatch(logoutUser()).unwrap()
-
+    await logout()
     handleClose(null)
-
     navigate('/')
   }
 
@@ -240,6 +236,26 @@ function NavIcons() {
                             Đơn hàng của tôi
                           </Typography>
                         </MenuItem>
+
+                        {/* Admin option - chỉ hiển thị nếu user là admin */}
+                        {isAdmin && (
+                          <MenuItem
+                            component={Link}
+                            to='/admin'
+                            onClick={handleClose}
+                            sx={{ py: 1.5 }}
+                          >
+                            <ListItemIcon>
+                              <AdminPanelSettingsIcon
+                                fontSize='small'
+                                color='primary'
+                              />
+                            </ListItemIcon>
+                            <Typography variant='body2' color='primary.main'>
+                              Quản lý hệ thống
+                            </Typography>
+                          </MenuItem>
+                        )}
 
                         <MenuItem
                           component={Link}
