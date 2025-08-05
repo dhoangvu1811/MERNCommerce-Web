@@ -1,12 +1,29 @@
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
+import { fetchCurrentUser } from '../redux/slices/authSlice'
+import { logoutUser } from '../redux/slices/userSlice'
 
 // Custom hook để lấy auth state từ auth slice (persist)
 export const useAuth = () => {
   const auth = useSelector((state) => state.auth)
+  const dispatch = useDispatch()
+
+  const logout = async (showSuccessMessage = true) => {
+    await dispatch(logoutUser(showSuccessMessage)).unwrap()
+  }
+
+  const refreshUser = async () => {
+    // Dispatch fetchCurrentUser để cập nhật Redux state đồng bộ
+    const result = await dispatch(fetchCurrentUser()).unwrap()
+    return result
+  }
 
   return {
-    user: auth.currentUser,
-    isAuthenticated: auth.isAuthenticated
+    currentUser: auth.currentUser,
+    user: auth.currentUser, // alias cho compatibility
+    isAuthenticated: auth.isAuthenticated,
+    isAdmin: auth.currentUser?.role === 'admin',
+    logout,
+    refreshUser
   }
 }
 

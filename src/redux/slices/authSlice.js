@@ -1,4 +1,16 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { userApi } from '../../apis/userApi'
+
+// Async thunk để fetch current user từ API
+export const fetchCurrentUser = createAsyncThunk(
+  'auth/fetchCurrentUser',
+  async () => {
+    // Không cần try/catch vì axios interceptor đã xử lý tất cả lỗi
+    // (401: auto logout, 410: auto refresh token, errors: auto toast)
+    const data = await userApi.getCurrentUser()
+    return data
+  }
+)
 
 // Initial state chỉ cho authentication và persist
 const initialState = {
@@ -29,6 +41,14 @@ const authSlice = createSlice({
         state.currentUser = { ...state.currentUser, ...action.payload }
       }
     }
+  },
+  extraReducers: (builder) => {
+    builder
+      // fetchCurrentUser fulfilled - chỉ cần trường hợp thành công
+      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+        state.currentUser = action.payload.data.user
+        state.isAuthenticated = true
+      })
   }
 })
 

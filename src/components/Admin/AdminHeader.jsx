@@ -13,6 +13,7 @@ import {
   Tooltip
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../hooks/useAuth'
 import HomeIcon from '@mui/icons-material/Home'
 import LogoutIcon from '@mui/icons-material/Logout'
 import NotificationsIcon from '@mui/icons-material/Notifications'
@@ -22,6 +23,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 
 const AdminHeader = () => {
   const navigate = useNavigate()
+  const { logout } = useAuth()
   const [anchorEl, setAnchorEl] = useState(null)
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null)
 
@@ -41,8 +43,8 @@ const AdminHeader = () => {
     setNotificationAnchorEl(null)
   }
 
-  const handleLogout = () => {
-    // Here you would handle logout logic
+  const handleLogout = async () => {
+    await logout()
     navigate('/')
     handleMenuClose()
   }
