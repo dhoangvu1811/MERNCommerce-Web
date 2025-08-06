@@ -15,6 +15,11 @@ import {
   Paper
 } from '@mui/material'
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera'
+import {
+  FIELD_REQUIRED_MESSAGE,
+  EMAIL_RULE,
+  EMAIL_RULE_MESSAGE
+} from '../../utils/validators'
 
 const ProfileTab = () => {
   const dispatch = useDispatch()
@@ -160,7 +165,7 @@ const ProfileTab = () => {
                 <Controller
                   name='firstName'
                   control={control}
-                  rules={{ required: 'First name is required' }}
+                  rules={{ required: FIELD_REQUIRED_MESSAGE }}
                   render={({ field, fieldState: { error } }) => (
                     <TextField
                       {...field}
@@ -178,7 +183,7 @@ const ProfileTab = () => {
                 <Controller
                   name='lastName'
                   control={control}
-                  rules={{ required: 'Last name is required' }}
+                  rules={{ required: FIELD_REQUIRED_MESSAGE }}
                   render={({ field, fieldState: { error } }) => (
                     <TextField
                       {...field}
@@ -197,10 +202,10 @@ const ProfileTab = () => {
                   name='email'
                   control={control}
                   rules={{
-                    required: 'Email is required',
+                    required: FIELD_REQUIRED_MESSAGE,
                     pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
-                      message: 'Invalid email address'
+                      value: EMAIL_RULE,
+                      message: EMAIL_RULE_MESSAGE
                     }
                   }}
                   render={({ field, fieldState: { error } }) => (

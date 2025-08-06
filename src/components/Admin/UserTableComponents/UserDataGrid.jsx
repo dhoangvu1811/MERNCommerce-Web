@@ -1,5 +1,5 @@
 import React from 'react'
-import { Paper, Box, IconButton, Chip } from '@mui/material'
+import { Paper, Box, IconButton, Chip, Avatar } from '@mui/material'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -7,19 +7,55 @@ import DeleteIcon from '@mui/icons-material/Delete'
 const UserDataGrid = ({ users, onEdit, onDelete }) => {
   // Column definitions for DataGrid
   const columns = [
+    {
+      field: 'avatar',
+      headerName: 'Avatar',
+      width: 80,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Avatar
+          src={params.value}
+          alt={params.row.name}
+          sx={{ width: 40, height: 40 }}
+        />
+      )
+    },
     { field: 'name', headerName: 'Tên', flex: 1, minWidth: 150 },
     { field: 'email', headerName: 'Email', flex: 1, minWidth: 180 },
     { field: 'phone', headerName: 'Số điện thoại', width: 150 },
-    { field: 'address', headerName: 'Địa chỉ', flex: 1, minWidth: 180 },
-    { field: 'city', headerName: 'Thành phố', width: 150 },
+    { field: 'address', headerName: 'Địa chỉ', flex: 1, minWidth: 200 },
     {
-      field: 'isAdmin',
-      headerName: 'Admin',
+      field: 'dateOfBirth',
+      headerName: 'Ngày sinh',
+      width: 120,
+      renderCell: (params) => {
+        if (!params.value) return ''
+        const date = new Date(params.value)
+        return date.toLocaleDateString('vi-VN')
+      }
+    },
+    {
+      field: 'gender',
+      headerName: 'Giới tính',
+      width: 100,
+      renderCell: (params) => {
+        const genderMap = {
+          male: 'Nam',
+          female: 'Nữ',
+          other: 'Khác'
+        }
+        return genderMap[params.value] || params.value
+      }
+    },
+    {
+      field: 'role',
+      headerName: 'Vai trò',
       width: 120,
       renderCell: (params) => (
         <Chip
-          label={params.value ? 'Admin' : 'User'}
-          color={params.value ? 'primary' : 'default'}
+          label={params.value === 'admin' ? 'Quản trị' : 'Người dùng'}
+          color={params.value === 'admin' ? 'primary' : 'default'}
           size='small'
         />
       )

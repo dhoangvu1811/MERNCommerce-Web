@@ -16,6 +16,11 @@ import {
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import LockIcon from '@mui/icons-material/Lock'
+import {
+  FIELD_REQUIRED_MESSAGE,
+  PASSWORD_RULE,
+  PASSWORD_RULE_MESSAGE
+} from '../../utils/validators'
 
 const PasswordField = ({
   label,
@@ -106,7 +111,7 @@ const SecurityTab = () => {
             <Controller
               name='currentPassword'
               control={control}
-              rules={{ required: 'Current password is required' }}
+              rules={{ required: FIELD_REQUIRED_MESSAGE }}
               render={({ field, fieldState: { error } }) => (
                 <PasswordField
                   {...field}
@@ -128,10 +133,10 @@ const SecurityTab = () => {
               name='newPassword'
               control={control}
               rules={{
-                required: 'New password is required',
-                minLength: {
-                  value: 8,
-                  message: 'Password must be at least 8 characters'
+                required: FIELD_REQUIRED_MESSAGE,
+                pattern: {
+                  value: PASSWORD_RULE,
+                  message: PASSWORD_RULE_MESSAGE
                 }
               }}
               render={({ field, fieldState: { error } }) => (
@@ -140,7 +145,7 @@ const SecurityTab = () => {
                   label='New Password'
                   error={!!error}
                   helperText={
-                    error?.message || 'Password must be at least 8 characters'
+                    error?.message || PASSWORD_RULE_MESSAGE
                   }
                   showPassword={showPasswords.newPassword}
                   togglePasswordVisibility={() =>
@@ -157,7 +162,7 @@ const SecurityTab = () => {
               name='confirmPassword'
               control={control}
               rules={{
-                required: 'Please confirm your new password',
+                required: FIELD_REQUIRED_MESSAGE,
                 validate: (value) =>
                   value === watch('newPassword') || 'Passwords do not match'
               }}
