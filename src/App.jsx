@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import { Box } from '@mui/material'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { setLogoutCallback } from './apis/axiosConfig'
 import { useAuth } from './hooks/useAuth'
 import HomePage from './pages/HomePage'
@@ -18,6 +18,7 @@ import MainLayout from './layouts/MainLayout'
 function AppContent() {
   const navigate = useNavigate()
   const { refreshUser } = useAuth()
+  const isInitialized = useRef(false)
 
   useEffect(() => {
     // Setup logout callback để redirect về home khi logout
@@ -27,8 +28,14 @@ function AppContent() {
   }, [navigate])
 
   useEffect(() => {
+    // Ngăn chặn infinite loop và multiple calls trong StrictMode
+    if (isInitialized.current) {
+      return
+    }
+
+    isInitialized.current = true
+
     // Chỉ refresh user 1 lần khi app khởi động
-    // Không depend vào refreshUser để tránh infinite loop
     refreshUser().catch((error) => {
       // Log error cho debugging nhưng không show UI error vì axios interceptor đã xử lý
       // eslint-disable-next-line no-console

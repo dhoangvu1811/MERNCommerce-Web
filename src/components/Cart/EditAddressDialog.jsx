@@ -21,6 +21,7 @@ import HomeIcon from '@mui/icons-material/Home'
 import LocationCityIcon from '@mui/icons-material/LocationCity'
 import PublicIcon from '@mui/icons-material/Public'
 import MarkunreadMailboxIcon from '@mui/icons-material/MarkunreadMailbox'
+import { FIELD_REQUIRED_MESSAGE } from '../../utils/validators'
 
 /**
  * Edit address dialog with text fields for direct editing
@@ -174,7 +175,7 @@ function EditAddressDialog({ open, onClose, onSave, currentAddress }) {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 {...register('name', {
-                  required: 'Name is required'
+                  required: FIELD_REQUIRED_MESSAGE
                 })}
                 label='Full Name'
                 fullWidth
@@ -194,7 +195,7 @@ function EditAddressDialog({ open, onClose, onSave, currentAddress }) {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 {...register('phone', {
-                  required: 'Phone number is required',
+                  required: FIELD_REQUIRED_MESSAGE,
                   pattern: {
                     value: /^[0-9]{10,11}$/,
                     message: 'Enter a valid 10-11 digit phone number'
@@ -231,7 +232,7 @@ function EditAddressDialog({ open, onClose, onSave, currentAddress }) {
             <Grid size={{ xs: 12 }}>
               <TextField
                 {...register('address', {
-                  required: 'Street address is required'
+                  required: FIELD_REQUIRED_MESSAGE
                 })}
                 label='Street Address'
                 fullWidth
@@ -251,7 +252,7 @@ function EditAddressDialog({ open, onClose, onSave, currentAddress }) {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 {...register('city', {
-                  required: 'City is required'
+                  required: FIELD_REQUIRED_MESSAGE
                 })}
                 label='City'
                 fullWidth
@@ -271,7 +272,7 @@ function EditAddressDialog({ open, onClose, onSave, currentAddress }) {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 {...register('province', {
-                  required: 'State/Province is required'
+                  required: FIELD_REQUIRED_MESSAGE
                 })}
                 label='State/Province'
                 fullWidth

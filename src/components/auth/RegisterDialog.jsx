@@ -18,6 +18,13 @@ import EmailOutlined from '@mui/icons-material/EmailOutlined'
 import LockOutlined from '@mui/icons-material/LockOutlined'
 import PersonOutline from '@mui/icons-material/PersonOutline'
 import AuthFormField from './AuthFormField'
+import {
+  FIELD_REQUIRED_MESSAGE,
+  EMAIL_RULE,
+  EMAIL_RULE_MESSAGE,
+  PASSWORD_RULE,
+  PASSWORD_RULE_MESSAGE
+} from '../../utils/validators'
 
 const RegisterDialog = ({ open, onClose, onSuccess, onSwitchToLogin }) => {
   const dispatch = useDispatch()
@@ -111,7 +118,7 @@ const RegisterDialog = ({ open, onClose, onSuccess, onSwitchToLogin }) => {
               autoFocus
               icon={<PersonOutline color='action' />}
               rules={{
-                required: 'Họ tên không được để trống'
+                required: FIELD_REQUIRED_MESSAGE
               }}
             />
 
@@ -123,10 +130,10 @@ const RegisterDialog = ({ open, onClose, onSuccess, onSwitchToLogin }) => {
               autoComplete='email'
               icon={<EmailOutlined color='action' />}
               rules={{
-                required: 'Email không được để trống',
+                required: FIELD_REQUIRED_MESSAGE,
                 pattern: {
-                  value: /\S+@\S+\.\S+/,
-                  message: 'Email không hợp lệ'
+                  value: EMAIL_RULE,
+                  message: EMAIL_RULE_MESSAGE
                 }
               }}
             />
@@ -139,10 +146,10 @@ const RegisterDialog = ({ open, onClose, onSuccess, onSwitchToLogin }) => {
               autoComplete='new-password'
               icon={<LockOutlined color='action' />}
               rules={{
-                required: 'Mật khẩu không được để trống',
-                minLength: {
-                  value: 6,
-                  message: 'Mật khẩu phải có ít nhất 6 ký tự'
+                required: FIELD_REQUIRED_MESSAGE,
+                pattern: {
+                  value: PASSWORD_RULE,
+                  message: PASSWORD_RULE_MESSAGE
                 }
               }}
             />
@@ -155,7 +162,7 @@ const RegisterDialog = ({ open, onClose, onSuccess, onSwitchToLogin }) => {
               autoComplete='confirm-password'
               icon={<LockOutlined color='action' />}
               rules={{
-                required: 'Vui lòng xác nhận mật khẩu',
+                required: FIELD_REQUIRED_MESSAGE,
                 validate: (value) =>
                   value === password || 'Mật khẩu xác nhận không khớp'
               }}

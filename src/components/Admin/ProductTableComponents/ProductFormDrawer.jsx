@@ -19,6 +19,7 @@ import {
 import { toast } from 'react-toastify'
 import { createProduct, updateProduct, getAllProductTypes } from '~/apis'
 import ImageUpload from './ImageUpload'
+import { FIELD_REQUIRED_MESSAGE } from '../../../utils/validators'
 
 const ProductFormDrawer = ({
   open,
@@ -167,7 +168,7 @@ const ProductFormDrawer = ({
           name='name'
           control={control}
           rules={{
-            required: 'Tên sản phẩm là bắt buộc',
+            required: FIELD_REQUIRED_MESSAGE,
             minLength: {
               value: 2,
               message: 'Tên sản phẩm phải có ít nhất 2 ký tự'
@@ -193,7 +194,7 @@ const ProductFormDrawer = ({
           name='image'
           control={control}
           rules={{
-            required: 'Hình ảnh sản phẩm là bắt buộc'
+            required: FIELD_REQUIRED_MESSAGE
           }}
           render={({ field, fieldState: { error } }) => (
             <ImageUpload
@@ -210,7 +211,7 @@ const ProductFormDrawer = ({
           name='price'
           control={control}
           rules={{
-            required: 'Giá sản phẩm là bắt buộc',
+            required: FIELD_REQUIRED_MESSAGE,
             min: {
               value: 1000,
               message: 'Giá sản phẩm phải lớn hơn 1,000 VND'
@@ -234,7 +235,7 @@ const ProductFormDrawer = ({
           name='rating'
           control={control}
           rules={{
-            required: 'Đánh giá là bắt buộc',
+            required: FIELD_REQUIRED_MESSAGE,
             min: {
               value: 0,
               message: 'Đánh giá phải từ 0 đến 5'
@@ -263,7 +264,7 @@ const ProductFormDrawer = ({
           name='type'
           control={control}
           rules={{
-            required: 'Loại sản phẩm là bắt buộc',
+            required: FIELD_REQUIRED_MESSAGE,
             ...(isCustomType && {
               minLength: {
                 value: 2,
@@ -347,7 +348,7 @@ const ProductFormDrawer = ({
           name='countInStock'
           control={control}
           rules={{
-            required: 'Số lượng trong kho là bắt buộc',
+            required: FIELD_REQUIRED_MESSAGE,
             min: {
               value: 0,
               message: 'Số lượng không thể âm'
@@ -399,7 +400,7 @@ const ProductFormDrawer = ({
           name='description'
           control={control}
           rules={{
-            required: 'Mô tả sản phẩm là bắt buộc',
+            required: FIELD_REQUIRED_MESSAGE,
             minLength: {
               value: 10,
               message: 'Mô tả phải có ít nhất 10 ký tự'

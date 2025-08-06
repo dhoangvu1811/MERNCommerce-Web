@@ -12,6 +12,12 @@ import {
   MenuItem,
   Divider
 } from '@mui/material'
+import AvatarUpload from './AvatarUpload'
+import {
+  FIELD_REQUIRED_MESSAGE,
+  EMAIL_RULE,
+  EMAIL_RULE_MESSAGE
+} from '../../../utils/validators'
 
 const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
   const { control, handleSubmit, reset } = useForm({
@@ -20,8 +26,10 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
       email: user?.email || '',
       phone: user?.phone || '',
       address: user?.address || '',
-      city: user?.city || '',
-      isAdmin: user?.isAdmin || false
+      avatar: user?.avatar || '',
+      dateOfBirth: user?.dateOfBirth || '',
+      gender: user?.gender || '',
+      role: user?.role || 'user'
     }
   })
 
@@ -32,8 +40,10 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
         email: user.email,
         phone: user.phone,
         address: user.address,
-        city: user.city,
-        isAdmin: user.isAdmin
+        avatar: user.avatar,
+        dateOfBirth: user.dateOfBirth,
+        gender: user.gender,
+        role: user.role
       })
     } else {
       reset({
@@ -41,8 +51,10 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
         email: '',
         phone: '',
         address: '',
-        city: '',
-        isAdmin: false
+        avatar: '',
+        dateOfBirth: '',
+        gender: '',
+        role: 'user'
       })
     }
   }, [user, reset])
@@ -83,7 +95,7 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
           name='name'
           control={control}
           rules={{
-            required: 'Tên là bắt buộc',
+            required: FIELD_REQUIRED_MESSAGE,
             minLength: {
               value: 2,
               message: 'Tên phải có ít nhất 2 ký tự'
@@ -105,10 +117,10 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
           name='email'
           control={control}
           rules={{
-            required: 'Email là bắt buộc',
+            required: FIELD_REQUIRED_MESSAGE,
             pattern: {
-              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
-              message: 'Email không hợp lệ'
+              value: EMAIL_RULE,
+              message: EMAIL_RULE_MESSAGE
             }
           }}
           render={({ field, fieldState: { error } }) => (
@@ -128,7 +140,7 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
           name='phone'
           control={control}
           rules={{
-            required: 'Số điện thoại là bắt buộc',
+            required: FIELD_REQUIRED_MESSAGE,
             pattern: {
               value: /^[0-9]{10,11}$/,
               message: 'Số điện thoại phải có 10-11 chữ số'
@@ -149,13 +161,15 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
         <Controller
           name='address'
           control={control}
-          rules={{ required: 'Địa chỉ là bắt buộc' }}
+          rules={{ required: FIELD_REQUIRED_MESSAGE }}
           render={({ field, fieldState: { error } }) => (
             <TextField
               {...field}
               label='Địa chỉ'
               fullWidth
               variant='outlined'
+              multiline
+              rows={2}
               error={!!error}
               helperText={error?.message}
             />
@@ -163,15 +177,32 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
         />
 
         <Controller
-          name='city'
+          name='avatar'
           control={control}
-          rules={{ required: 'Thành phố là bắt buộc' }}
+          render={({ field, fieldState: { error } }) => (
+            <AvatarUpload
+              value={field.value}
+              onChange={field.onChange}
+              error={!!error}
+              helperText={error?.message || 'Chọn ảnh đại diện cho người dùng'}
+            />
+          )}
+        />
+
+        <Controller
+          name='dateOfBirth'
+          control={control}
+          rules={{ required: FIELD_REQUIRED_MESSAGE }}
           render={({ field, fieldState: { error } }) => (
             <TextField
               {...field}
-              label='Thành phố'
+              label='Ngày sinh'
+              type='date'
               fullWidth
               variant='outlined'
+              InputLabelProps={{
+                shrink: true
+              }}
               error={!!error}
               helperText={error?.message}
             />
@@ -179,19 +210,35 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
         />
 
         <Controller
-          name='isAdmin'
+          name='gender'
+          control={control}
+          rules={{ required: FIELD_REQUIRED_MESSAGE }}
+          render={({ field, fieldState: { error } }) => (
+            <FormControl fullWidth error={!!error}>
+              <InputLabel>Giới tính</InputLabel>
+              <Select {...field} label='Giới tính'>
+                <MenuItem value='male'>Nam</MenuItem>
+                <MenuItem value='female'>Nữ</MenuItem>
+                <MenuItem value='other'>Khác</MenuItem>
+              </Select>
+              {error && (
+                <Typography variant='caption' color='error' sx={{ mt: 1 }}>
+                  {error.message}
+                </Typography>
+              )}
+            </FormControl>
+          )}
+        />
+
+        <Controller
+          name='role'
           control={control}
           render={({ field, fieldState: { error } }) => (
             <FormControl fullWidth error={!!error}>
-              <InputLabel>Quyền</InputLabel>
-              <Select
-                {...field}
-                label='Quyền'
-                value={field.value.toString()}
-                onChange={(e) => field.onChange(e.target.value === 'true')}
-              >
-                <MenuItem value='false'>User</MenuItem>
-                <MenuItem value='true'>Admin</MenuItem>
+              <InputLabel>Vai trò</InputLabel>
+              <Select {...field} label='Vai trò'>
+                <MenuItem value='user'>Người dùng</MenuItem>
+                <MenuItem value='admin'>Quản trị viên</MenuItem>
               </Select>
               {error && (
                 <Typography variant='caption' color='error' sx={{ mt: 1 }}>

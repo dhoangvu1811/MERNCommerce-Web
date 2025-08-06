@@ -17,6 +17,13 @@ import CloseIcon from '@mui/icons-material/Close'
 import EmailOutlined from '@mui/icons-material/EmailOutlined'
 import LockOutlined from '@mui/icons-material/LockOutlined'
 import AuthFormField from './AuthFormField'
+import {
+  FIELD_REQUIRED_MESSAGE,
+  EMAIL_RULE,
+  EMAIL_RULE_MESSAGE,
+  PASSWORD_RULE,
+  PASSWORD_RULE_MESSAGE
+} from '../../utils/validators'
 
 const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
   const dispatch = useDispatch()
@@ -106,10 +113,10 @@ const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
               autoFocus
               icon={<EmailOutlined color='action' />}
               rules={{
-                required: 'Email không được để trống',
+                required: FIELD_REQUIRED_MESSAGE,
                 pattern: {
-                  value: /\S+@\S+\.\S+/,
-                  message: 'Email không hợp lệ'
+                  value: EMAIL_RULE,
+                  message: EMAIL_RULE_MESSAGE
                 }
               }}
             />
@@ -122,10 +129,10 @@ const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
               autoComplete='current-password'
               icon={<LockOutlined color='action' />}
               rules={{
-                required: 'Mật khẩu không được để trống',
-                minLength: {
-                  value: 6,
-                  message: 'Mật khẩu phải có ít nhất 6 ký tự'
+                required: FIELD_REQUIRED_MESSAGE,
+                pattern: {
+                  value: PASSWORD_RULE,
+                  message: PASSWORD_RULE_MESSAGE
                 }
               }}
             />
