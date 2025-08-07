@@ -5,10 +5,11 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Button
+  Button,
+  CircularProgress
 } from '@mui/material'
 
-const DeleteUserDialog = ({ open, onClose, onConfirm }) => {
+const DeleteUserDialog = ({ open, onClose, onConfirm, loading = false }) => {
   return (
     <Dialog
       open={open}
@@ -24,11 +25,17 @@ const DeleteUserDialog = ({ open, onClose, onConfirm }) => {
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color='primary'>
+        <Button onClick={onClose} color='primary' disabled={loading}>
           Hủy
         </Button>
-        <Button onClick={onConfirm} color='error' autoFocus>
-          Xóa
+        <Button
+          onClick={onConfirm}
+          color='error'
+          autoFocus
+          disabled={loading}
+          startIcon={loading ? <CircularProgress size={16} /> : null}
+        >
+          {loading ? 'Đang xóa...' : 'Xóa'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,10 +1,40 @@
-import React from 'react'
-import { Paper, Box, IconButton, Chip, Avatar } from '@mui/material'
+import React, { useState } from 'react'
+import {
+  Paper,
+  Box,
+  IconButton,
+  Chip,
+  Avatar,
+  Typography,
+  Button
+} from '@mui/material'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 
-const UserDataGrid = ({ users, onEdit, onDelete }) => {
+const UserDataGrid = ({
+  users,
+  onEdit,
+  onDelete,
+  onBulkDelete,
+  pagination,
+  onPageChange,
+  loading = false
+}) => {
+  const [selectedRows, setSelectedRows] = useState([])
+
+  // Xử lý bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedRows.length === 0) return
+
+    try {
+      await onBulkDelete(selectedRows)
+      setSelectedRows([]) // Reset selection sau khi xóa
+    } catch {
+      // Xử lý lỗi bulk delete
+    }
+  }
   // Column definitions for DataGrid
   const columns = [
     {
@@ -72,14 +102,14 @@ const UserDataGrid = ({ users, onEdit, onDelete }) => {
           <IconButton
             size='small'
             color='primary'
-            onClick={() => onEdit(params.row.id)}
+            onClick={() => onEdit(params.row._id || params.row.id)}
           >
             <EditIcon fontSize='small' />
           </IconButton>
           <IconButton
             size='small'
             color='error'
-            onClick={() => onDelete(params.row.id)}
+            onClick={() => onDelete(params.row._id || params.row.id)}
           >
             <DeleteIcon fontSize='small' />
           </IconButton>
@@ -88,19 +118,78 @@ const UserDataGrid = ({ users, onEdit, onDelete }) => {
     }
   ]
 
+  // Handle selection change
+  const handleSelectionModelChange = (newSelectionModel) => {
+    // newSelectionModel có cấu trúc {type: 'include', ids: Set} cho MUI X v8+
+    if (
+      newSelectionModel &&
+      newSelectionModel.ids &&
+      newSelectionModel.ids.size > 0
+    ) {
+      const selectedIds = Array.from(newSelectionModel.ids)
+      setSelectedRows(selectedIds)
+    } else {
+      setSelectedRows([])
+    }
+  }
+
+  // Handle page change
+  const handlePaginationModelChange = (model) => {
+    if (onPageChange) {
+      onPageChange(model.page + 1) // DataGrid uses 0-based, we use 1-based
+    }
+  }
+
   return (
-    <Paper sx={{ height: 'calc(100vh - 230px)', width: '100%' }}>
+    <Paper
+      sx={{
+        width: '100%',
+        overflow: 'hidden',
+        height: 'auto',
+        minHeight: '400px'
+      }}
+    >
+      {/* Bulk Actions Toolbar */}
+      {selectedRows && selectedRows.length > 0 && (
+        <Box
+          sx={{
+            p: 2,
+            backgroundColor: '#f5f5f5',
+            borderBottom: '1px solid #ddd',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Typography variant='body2'>
+            Đã chọn {selectedRows.length} người dùng
+          </Typography>
+          <Button
+            variant='contained'
+            color='error'
+            startIcon={<DeleteForeverIcon />}
+            onClick={handleBulkDelete}
+            disabled={loading}
+          >
+            Xóa tất cả
+          </Button>
+        </Box>
+      )}
+
       <DataGrid
         rows={users}
         columns={columns}
-        initialState={{
-          pagination: {
-            paginationModel: { pageSize: 10 }
-          },
-          sorting: {
-            sortModel: [{ field: 'name', sort: 'asc' }]
-          }
+        getRowId={(row) => row._id || row.id}
+        checkboxSelection
+        onRowSelectionModelChange={handleSelectionModelChange}
+        rowSelectionModel={{ type: 'include', ids: new Set(selectedRows) }}
+        paginationModel={{
+          page: pagination ? pagination.page - 1 : 0, // Convert to 0-based
+          pageSize: pagination ? pagination.limit : 10
         }}
+        onPaginationModelChange={handlePaginationModelChange}
+        rowCount={pagination ? pagination.total : users.length}
+        paginationMode='server'
         pageSizeOptions={[5, 10, 25]}
         slots={{ toolbar: GridToolbar }}
         slotProps={{
@@ -112,14 +201,13 @@ const UserDataGrid = ({ users, onEdit, onDelete }) => {
         getRowClassName={() => 'cursor-pointer hover:bg-gray-50'}
         disableRowSelectionOnClick={false}
         disableDensitySelector
-        checkboxSelection
         autoHeight
+        loading={loading}
         sx={{
           '& .MuiDataGrid-row:hover': {
             backgroundColor: 'rgba(0, 0, 0, 0.04)'
           }
         }}
-        loading={false}
       />
     </Paper>
   )
