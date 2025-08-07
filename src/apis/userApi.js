@@ -59,6 +59,22 @@ export const userApi = {
     return response.data
   },
 
+  uploadAvatar: async (avatarFile) => {
+    const formData = new FormData()
+    formData.append('avatar', avatarFile)
+
+    const response = await axiosInstance.post(
+      '/users/upload-avatar',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    )
+    return response.data
+  },
+
   getUserDetails: async (userId) => {
     const response = await axiosInstance.get(`/users/details/${userId}`)
     return response.data
@@ -83,32 +99,15 @@ export const userApi = {
     return response.data
   },
 
+  createUserByAdmin: async (userData) => {
+    const response = await axiosInstance.post('/users/create', userData)
+    return response.data
+  },
+
   updateUserByAdmin: async (userId, userData) => {
-    // Sử dụng FormData cho upload avatar
-    const formData = new FormData()
-
-    Object.keys(userData).forEach((key) => {
-      if (
-        key !== 'avatar' &&
-        userData[key] !== undefined &&
-        userData[key] !== null
-      ) {
-        formData.append(key, userData[key])
-      }
-    })
-
-    if (userData.avatar && userData.avatar instanceof File) {
-      formData.append('avatar', userData.avatar)
-    }
-
     const response = await axiosInstance.put(
       `/users/update/${userId}`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }
+      userData
     )
     return response.data
   },
