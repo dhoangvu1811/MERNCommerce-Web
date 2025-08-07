@@ -10,7 +10,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Divider
+  Divider,
+  CircularProgress
 } from '@mui/material'
 import AvatarUpload from './AvatarUpload'
 import {
@@ -19,7 +20,14 @@ import {
   EMAIL_RULE_MESSAGE
 } from '../../../utils/validators'
 
-const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
+const UserFormDrawer = ({
+  open,
+  onClose,
+  onSubmit,
+  user = null,
+  title,
+  loading = false
+}) => {
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       name: user?.name || '',
@@ -27,23 +35,25 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
       phone: user?.phone || '',
       address: user?.address || '',
       avatar: user?.avatar || '',
-      dateOfBirth: user?.dateOfBirth || '',
-      gender: user?.gender || '',
-      role: user?.role || 'user'
+      dateOfBirth: user?.dateOfBirth || '2000-01-01',
+      gender: user?.gender || 'male',
+      role: user?.role || 'user',
+      password: '' // Chỉ dùng khi tạo user mới
     }
   })
 
   React.useEffect(() => {
     if (user) {
       reset({
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        address: user.address,
-        avatar: user.avatar,
-        dateOfBirth: user.dateOfBirth,
-        gender: user.gender,
-        role: user.role
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        avatar: user.avatar || '',
+        dateOfBirth: user.dateOfBirth || '2000-01-01',
+        gender: user.gender || 'male',
+        role: user.role || 'user'
+        // Không có password khi edit
       })
     } else {
       reset({
@@ -52,21 +62,55 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
         phone: '',
         address: '',
         avatar: '',
-        dateOfBirth: '',
-        gender: '',
-        role: 'user'
+        dateOfBirth: '2000-01-01',
+        gender: 'male',
+        role: 'user',
+        password: '' // Có password khi tạo mới
       })
     }
   }, [user, reset])
 
   const handleFormSubmit = (data) => {
-    onSubmit(data)
-    reset()
+    // Loại bỏ password nếu đang edit user (không cần update password)
+    if (user) {
+      const { password, ...userDataWithoutPassword } = data
+      onSubmit(userDataWithoutPassword)
+    } else {
+      onSubmit(data)
+    }
+
+    if (!user) {
+      // Reset về giá trị mặc định cho form thêm mới
+      reset({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        avatar: '',
+        dateOfBirth: '2000-01-01',
+        gender: 'male',
+        role: 'user',
+        password: ''
+      })
+    }
   }
 
   const handleCancel = () => {
     onClose()
-    reset()
+    if (!user) {
+      // Reset về giá trị mặc định cho form thêm mới
+      reset({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        avatar: '',
+        dateOfBirth: '2000-01-01',
+        gender: 'male',
+        role: 'user',
+        password: ''
+      })
+    }
   }
 
   return (
@@ -135,6 +179,32 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
             />
           )}
         />
+
+        {/* Trường password chỉ hiển thị khi tạo user mới */}
+        {!user && (
+          <Controller
+            name='password'
+            control={control}
+            rules={{
+              required: FIELD_REQUIRED_MESSAGE,
+              minLength: {
+                value: 6,
+                message: 'Mật khẩu phải có ít nhất 6 ký tự'
+              }
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label='Mật khẩu'
+                type='password'
+                fullWidth
+                variant='outlined'
+                error={!!error}
+                helperText={error?.message}
+              />
+            )}
+          />
+        )}
 
         <Controller
           name='phone'
@@ -250,8 +320,15 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
         />
 
         <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-          <Button type='submit' variant='contained' color='primary' fullWidth>
-            {user ? 'Lưu' : 'Thêm người dùng'}
+          <Button
+            type='submit'
+            variant='contained'
+            color='primary'
+            fullWidth
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={16} /> : null}
+          >
+            {loading ? 'Đang lưu...' : user ? 'Lưu' : 'Thêm người dùng'}
           </Button>
           <Button
             type='button'
@@ -259,6 +336,7 @@ const UserFormDrawer = ({ open, onClose, onSubmit, user = null, title }) => {
             color='secondary'
             onClick={handleCancel}
             fullWidth
+            disabled={loading}
           >
             Hủy
           </Button>
