@@ -103,6 +103,14 @@ export const getAllUsers = createAsyncThunk(
   }
 )
 
+export const createUser = createAsyncThunk(
+  'user/createUser',
+  async (userData) => {
+    const data = await userApi.createUserByAdmin(userData)
+    return data
+  }
+)
+
 export const updateUserByAdmin = createAsyncThunk(
   'user/updateUserByAdmin',
   async ({ userId, userData }) => {
@@ -184,6 +192,12 @@ const userSlice = createSlice({
       .addCase(getAllUsers.fulfilled, (state, action) => {
         state.users = action.payload.data.users
         state.pagination = action.payload.data.pagination
+      })
+
+      // Create user cases
+      .addCase(createUser.fulfilled, (state, action) => {
+        const newUser = action.payload.data.user
+        state.users.unshift(newUser) // Add to beginning of list
       })
 
       // Update user by admin cases
