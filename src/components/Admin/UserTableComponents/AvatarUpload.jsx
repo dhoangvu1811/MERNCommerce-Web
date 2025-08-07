@@ -14,6 +14,7 @@ import {
   Person as PersonIcon
 } from '@mui/icons-material'
 import { toast } from 'react-toastify'
+import { userApi } from '../../../apis/userApi'
 
 const AvatarUpload = ({
   value,
@@ -51,39 +52,33 @@ const AvatarUpload = ({
     }
     reader.readAsDataURL(file)
 
-    // Upload file (simulate upload - có thể tích hợp API upload avatar sau)
+    // Upload file với API thực tế
     handleUpload(file)
   }
 
-  // Xử lý upload (simulate - có thể thay thế bằng API thực tế)
+  // Xử lý upload với API thực tế
   const handleUpload = async (file) => {
     setUploading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Gọi API upload avatar
+      const result = await userApi.uploadAvatar(file)
 
-      // Tạm thời sử dụng base64 URL cho demo
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const imageUrl = e.target.result
-        setPreviewUrl(imageUrl)
-        onChange(imageUrl) // Truyền URL về parent component
-        toast.success('Upload avatar thành công!')
-      }
-      reader.readAsDataURL(file)
-    } catch {
-      setPreviewUrl('') // Reset preview nếu upload failed
-      toast.error('Upload avatar thất bại!')
+      // Cập nhật preview và value với URL từ server
+      const avatarUrl = result.avatarUrl || result.url || result.data?.avatarUrl
+      setPreviewUrl(avatarUrl)
+      onChange(avatarUrl) // Truyền URL về parent component
+      toast.success(result.message || 'Upload avatar thành công!')
+    } finally {
+      setUploading(false)
     }
-
-    setUploading(false)
   }
 
   // Xóa ảnh
   const handleRemoveImage = () => {
     setPreviewUrl('')
     onChange('') // Clear value in parent
+    toast.success('Đã xóa avatar')
   }
 
   return (
