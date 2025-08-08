@@ -84,6 +84,16 @@ axiosInstance.interceptors.response.use(
     // Đầu tiên cần lấy được các request API đang bị lỗi thông qua error.config
     const originalRequest = error.config
     if (error.response?.status === 410 && originalRequest) {
+      // Kiểm tra nếu request đã được retry trước đó để tránh infinity loop
+      if (originalRequest._isRetrying) {
+        // Nếu đã retry rồi mà vẫn lỗi 410, logout user
+        dispatchLogout()
+        return Promise.reject(error)
+      }
+
+      // Đánh dấu request này đang được retry
+      originalRequest._isRetrying = true
+
       if (!refreshTokenPromise) {
         // Gọi API refresh token - sử dụng axios trực tiếp để tránh circular dependency
         refreshTokenPromise = axios

@@ -1,6 +1,9 @@
 import PropTypes from 'prop-types'
-import { TextField, InputAdornment } from '@mui/material'
+import { useState } from 'react'
+import { TextField, InputAdornment, IconButton } from '@mui/material'
 import { Controller } from 'react-hook-form'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 
 const AuthFormField = ({
   name,
@@ -12,6 +15,13 @@ const AuthFormField = ({
   autoFocus,
   icon
 }) => {
+  const [showPassword, setShowPassword] = useState(false)
+  const isPasswordField = type === 'password'
+
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
   return (
     <Controller
       name={name}
@@ -23,7 +33,7 @@ const AuthFormField = ({
           margin='dense'
           fullWidth
           label={label}
-          type={type || 'text'}
+          type={isPasswordField && showPassword ? 'text' : type || 'text'}
           error={!!error}
           helperText={error ? error.message : ' '}
           autoComplete={autoComplete}
@@ -31,6 +41,18 @@ const AuthFormField = ({
           InputProps={{
             startAdornment: icon ? (
               <InputAdornment position='start'>{icon}</InputAdornment>
+            ) : null,
+            endAdornment: isPasswordField ? (
+              <InputAdornment position='end'>
+                <IconButton
+                  aria-label='toggle password visibility'
+                  onClick={handleTogglePasswordVisibility}
+                  edge='end'
+                  size='small'
+                >
+                  {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                </IconButton>
+              </InputAdornment>
             ) : null
           }}
           InputLabelProps={{
