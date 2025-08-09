@@ -14,6 +14,7 @@ import Unauthorized from './pages/Unauthorized'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import AdminRouteWrapper from './components/auth/AdminRouteWrapper'
 import MainLayout from './layouts/MainLayout'
+import Vouchers from './pages/Vouchers'
 
 function AppContent() {
   const navigate = useNavigate()
@@ -76,6 +77,7 @@ function AppContent() {
           <Route path='/orders' element={<MyOrders />} />
           <Route path='/cart' element={<CartPage />} />
           <Route path='/support' element={<SupportCenter />} />
+          <Route path='/vouchers' element={<Vouchers />} />
         </Route>
       </Routes>
     </Box>
