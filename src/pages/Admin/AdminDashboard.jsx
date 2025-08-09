@@ -17,6 +17,7 @@ import PersonIcon from '@mui/icons-material/Person'
 import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
+import LocalOfferIcon from '@mui/icons-material/LocalOffer'
 import PeopleIcon from '@mui/icons-material/People'
 import InventoryIcon from '@mui/icons-material/Inventory'
 import LocalShippingIcon from '@mui/icons-material/LocalShipping'
@@ -26,6 +27,7 @@ import AdminHeader from '../../components/Admin/AdminHeader'
 import UserTable from '../../components/Admin/UserTable'
 import ProductTable from '../../components/Admin/ProductTable'
 import OrderTable from '../../components/Admin/OrderTable'
+import VoucherTable from '../../components/Admin/VoucherTable'
 
 // TabPanel component to render tab content
 function TabPanel(props) {
@@ -304,6 +306,11 @@ const AdminDashboard = () => {
               icon={<ShoppingCartIcon />}
               iconPosition={isMobile ? 'top' : 'start'}
             />
+            <Tab
+              label={!isMobile && 'Quản lý voucher'}
+              icon={<LocalOfferIcon />}
+              iconPosition={isMobile ? 'top' : 'start'}
+            />
           </Tabs>
 
           <Box
@@ -322,6 +329,9 @@ const AdminDashboard = () => {
             </TabPanel>
             <TabPanel value={tabValue} index={2}>
               <OrderTable />
+            </TabPanel>
+            <TabPanel value={tabValue} index={3}>
+              <VoucherTable />
             </TabPanel>
           </Box>
         </Paper>
