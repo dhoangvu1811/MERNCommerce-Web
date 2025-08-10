@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Box } from '@mui/material'
 import {
   VoucherSearchBar,
@@ -8,6 +8,13 @@ import {
   VoucherFormDrawer
 } from './VoucherTableComponents'
 import vouchersMock from '../../mocks/vouchers'
+import {
+  getVouchersAll,
+  createVoucher,
+  updateVoucher,
+  deleteVoucher,
+  deleteMultipleVouchers
+} from '../../apis/voucherApi'
 
 const VoucherTable = () => {
   const [vouchers, setVouchers] = useState(vouchersMock)
@@ -17,8 +24,43 @@ const VoucherTable = () => {
   const [editDrawerOpen, setEditDrawerOpen] = useState(false)
   const [addDrawerOpen, setAddDrawerOpen] = useState(false)
   const [editingVoucher, setEditingVoucher] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const searchTimer = useRef(null)
+
+  // Fetch vouchers from API
+  const fetchVouchers = async (query = {}) => {
+    setLoading(true)
+    try {
+      // Tạm dùng page 1, itemsPerPage lớn để lấy đủ dữ liệu cho demo
+      const res = await getVouchersAll({ page: 1, itemsPerPage: 100, ...query })
+      // response chuẩn: { code, message, data: { vouchers, pagination } }
+      const list = res?.data?.vouchers || []
+      setVouchers(list)
+    } catch {
+      // fallback giữ nguyên local state (mock)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchVouchers()
+  }, [])
+
+  // Debounce search
+  useEffect(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    searchTimer.current = setTimeout(() => {
+      const q = searchTerm.trim()
+      fetchVouchers(q ? { search: q } : {})
+    }, 400)
+    return () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current)
+    }
+  }, [searchTerm])
 
   const filteredVouchers = useMemo(() => {
+    // Server đã lọc theo search; vẫn giữ filter phụ trợ khi dùng mock
     if (!searchTerm.trim()) return vouchers
     const term = searchTerm.toLowerCase()
     return vouchers.filter((v) =>
@@ -35,7 +77,7 @@ const VoucherTable = () => {
     )
   }, [vouchers, searchTerm])
 
-  // CRUD (mock, local state)
+  // CRUD
   const handleEdit = (id) => {
     const voucher = vouchers.find((v) => v._id === id)
     if (voucher) {
@@ -52,11 +94,18 @@ const VoucherTable = () => {
     }
   }
 
-  const handleDeleteConfirm = () => {
-    if (voucherToDelete) {
-      setVouchers((prev) => prev.filter((v) => v._id !== voucherToDelete._id))
-      setDeleteDialogOpen(false)
-      setVoucherToDelete(null)
+  const handleDeleteConfirm = async () => {
+    if (!voucherToDelete) return
+    const id = voucherToDelete._id
+    // Optimistic update
+    setVouchers((prev) => prev.filter((v) => v._id !== id))
+    setDeleteDialogOpen(false)
+    setVoucherToDelete(null)
+    try {
+      await deleteVoucher(id)
+    } catch {
+      // rollback nếu muốn: fetch lại danh sách
+      fetchVouchers()
     }
   }
 
@@ -65,27 +114,32 @@ const VoucherTable = () => {
     setVoucherToDelete(null)
   }
 
-  const handleFormSubmit = (data) => {
+  const handleFormSubmit = async (data) => {
+    // Chuẩn hóa tối thiểu: cắt trắng
+    const payload = { ...data, code: data.code?.trim() }
+
     if (editingVoucher) {
+      const id = editingVoucher._id
+      // Optimistic update
       setVouchers((prev) =>
-        prev.map((v) =>
-          v._id === editingVoucher._id
-            ? { ...v, ...data, updatedAt: Date.now() }
-            : v
-        )
+        prev.map((v) => (v._id === id ? { ...v, ...payload } : v))
       )
       setEditDrawerOpen(false)
       setEditingVoucher(null)
-    } else {
-      const newVoucher = {
-        ...data,
-        _id: Math.random().toString(36).slice(2),
-        usedCount: data.usedCount ?? 0,
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+      try {
+        await updateVoucher(id, payload)
+        fetchVouchers({ search: searchTerm.trim() || undefined })
+      } catch {
+        fetchVouchers({ search: searchTerm.trim() || undefined })
       }
-      setVouchers((prev) => [newVoucher, ...prev])
+    } else {
       setAddDrawerOpen(false)
+      try {
+        await createVoucher(payload)
+        fetchVouchers({ search: searchTerm.trim() || undefined })
+      } catch {
+        // giữ nguyên
+      }
     }
   }
 
@@ -99,10 +153,19 @@ const VoucherTable = () => {
 
   const handleBulkDelete = async (selectedIds) => {
     if (!selectedIds?.length) return
+    // Optimistic
+    const previous = vouchers
     setVouchers((prev) => prev.filter((v) => !selectedIds.includes(v._id)))
+    try {
+      await deleteMultipleVouchers(selectedIds)
+    } catch {
+      setVouchers(previous)
+    }
   }
 
-  const handleToggleActive = (id) => {
+  const handleToggleActive = async (id) => {
+    // Optimistic
+    const previous = vouchers
     setVouchers((prev) =>
       prev.map((v) =>
         v._id === id
@@ -110,6 +173,12 @@ const VoucherTable = () => {
           : v
       )
     )
+    try {
+      const current = previous.find((v) => v._id === id)
+      await updateVoucher(id, { isActive: !current?.isActive })
+    } catch {
+      setVouchers(previous)
+    }
   }
 
   return (
@@ -135,6 +204,7 @@ const VoucherTable = () => {
         onDelete={handleDeleteClick}
         onBulkDelete={handleBulkDelete}
         onToggleActive={handleToggleActive}
+        loading={loading}
       />
 
       <DeleteVoucherDialog

@@ -118,16 +118,20 @@ function CartPage() {
     }, {})
   )
 
+  const [appliedVoucher, setAppliedVoucher] = useState(null)
+
   // Calculate total selected items and price
   const totalItems = Object.keys(selectedItems).filter(
     (id) => selectedItems[id]
   ).length
-  const totalPrice = cartItems.reduce((sum, item) => {
+  const subtotal = cartItems.reduce((sum, item) => {
     if (selectedItems[item.product.id]) {
       return sum + item.product.price * quantities[item.product.id]
     }
     return sum
   }, 0)
+
+  const discount = appliedVoucher?.discount || 0
 
   // Check if all items are selected
   const allItemsCount = cartItems.length
@@ -237,6 +241,8 @@ function CartPage() {
                 onSelect={handleSelectItem}
                 onQuantityChange={handleQuantityChange}
                 onRemove={handleRemoveItem}
+                orderTotal={subtotal}
+                onApplyVoucher={setAppliedVoucher}
               />
             ))}
 
@@ -262,9 +268,9 @@ function CartPage() {
 
               {/* Payment Summary */}
               <PaymentSummaryCard
-                subtotal={totalPrice}
+                subtotal={subtotal}
                 shippingFee={30000}
-                discount={10000}
+                discount={discount}
                 totalItems={totalItems}
                 onCheckout={handleCheckout}
               />
