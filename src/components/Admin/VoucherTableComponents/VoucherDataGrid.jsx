@@ -35,6 +35,17 @@ const VoucherDataGrid = ({
     }
   }
 
+  // Helper: format date in UTC to avoid timezone shifting
+  const formatDateUTC = (raw) => {
+    if (!raw) return '-'
+    const d = new Date(raw)
+    if (isNaN(d)) return '-'
+    const dd = String(d.getUTCDate()).padStart(2, '0')
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
+    const yyyy = d.getUTCFullYear()
+    return `${dd}/${mm}/${yyyy}`
+  }
+
   const columns = [
     { field: 'code', headerName: 'Mã', minWidth: 120 },
     {
@@ -77,45 +88,43 @@ const VoucherDataGrid = ({
       headerName: 'Hiệu lực',
       flex: 1,
       minWidth: 220,
-      valueGetter: (params) => {
-        const getValue =
-          typeof params?.getValue === 'function' ? params.getValue : undefined
-        const start = getValue
-          ? getValue(params.id, 'startDate')
-          : params?.row?.startDate
-        const end = getValue
-          ? getValue(params.id, 'endDate')
-          : params?.row?.endDate
-        const sd = start ? new Date(start).toLocaleDateString('vi-VN') : '-'
-        const ed = end ? new Date(end).toLocaleDateString('vi-VN') : '-'
-        return `${sd} → ${ed}`
-      },
-      renderCell: (params) => (
-        <Typography variant='body2'>{params?.value || '- → -'}</Typography>
-      )
+      renderCell: (params) => {
+        const row = params?.row || {}
+        const startRaw = row.startDate ?? row.start_date
+        const endRaw = row.endDate ?? row.end_date
+        const sd = formatDateUTC(startRaw)
+        const ed = formatDateUTC(endRaw)
+        return <Typography variant='body2'>{`${sd} → ${ed}`}</Typography>
+      }
     },
     {
       field: 'usage',
       headerName: 'Số lần dùng',
       width: 130,
-      valueGetter: (params) => {
-        const getValue =
-          typeof params?.getValue === 'function' ? params.getValue : undefined
-        const used =
-          Number(
-            getValue ? getValue(params.id, 'usedCount') : params?.row?.usedCount
-          ) || 0
-        const limit =
-          Number(
-            getValue
-              ? getValue(params.id, 'usageLimit')
-              : params?.row?.usageLimit
-          ) || 0
-        return `${used}/${limit === 0 ? '∞' : limit}`
-      },
-      renderCell: (params) => (
-        <Typography variant='body2'>{params?.value ?? ''}</Typography>
-      )
+      renderCell: (params) => {
+        const row = params?.row || {}
+        const rawUsed = row.usedCount ?? row.used_count
+        const usedNum = Number(rawUsed)
+        const used = Number.isFinite(usedNum) && usedNum >= 0 ? usedNum : 0
+
+        const rawLimit = row.usageLimit ?? row.usage_limit
+        let displayLimit
+        if (rawLimit === 0 || rawLimit === '0') {
+          displayLimit = '∞'
+        } else {
+          const limNum = Number(rawLimit)
+          if (Number.isFinite(limNum) && limNum > 0) {
+            displayLimit = limNum
+          } else if (rawLimit == null || rawLimit === '') {
+            displayLimit = '-'
+          } else {
+            displayLimit = '-'
+          }
+        }
+        return (
+          <Typography variant='body2'>{`${used}/${displayLimit}`}</Typography>
+        )
+      }
     },
     {
       field: 'isActive',

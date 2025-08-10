@@ -19,6 +19,7 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer'
 import CartItemQuantity from './CartItemQuantity'
 import RemoveItemDialog from './RemoveItemDialog'
 import { formatPrice } from '../../../utils/formatUtils'
+import { verifyVoucher } from '../../../apis/voucherApi'
 
 /**
  * Cart item component with product details and controls
@@ -29,13 +30,20 @@ function CartItem({
   quantity,
   onSelect,
   onQuantityChange,
-  onRemove
+  onRemove,
+  // New: order total and a callback to apply voucher at cart-level
+  orderTotal,
+  onApplyVoucher
 }) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   // State for remove confirmation dialog
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false)
+
+  // Local shop voucher input
+  const [voucherCode, setVoucherCode] = useState('')
+  const [applying, setApplying] = useState(false)
 
   const handleOpenRemoveDialog = () => {
     setRemoveDialogOpen(true)
@@ -47,6 +55,28 @@ function CartItem({
 
   const handleConfirmRemove = () => {
     onRemove(item.product.id)
+  }
+
+  const handleApplyVoucher = async () => {
+    const trimmed = voucherCode.trim()
+    if (!trimmed) return
+    // Use cart subtotal from props to verify voucher amount
+    const total = Number(orderTotal) || 0
+    if (total <= 0) return
+
+    setApplying(true)
+    try {
+      const res = await verifyVoucher({ code: trimmed, orderTotal: total })
+      const { voucher, discount, payable } = res?.data || {}
+      onApplyVoucher?.({
+        code: trimmed,
+        voucher,
+        discount: Number(discount) || 0,
+        payable: Number(payable) || 0
+      })
+    } finally {
+      setApplying(false)
+    }
   }
 
   return (
@@ -268,6 +298,9 @@ function CartItem({
           component={TextField}
           size='small'
           placeholder='Enter shop voucher code'
+          value={voucherCode}
+          onChange={(e) => setVoucherCode(e.target.value)}
+          disabled={applying}
           sx={{
             flexGrow: 1,
             maxWidth: { xs: '100%', sm: 300 },
@@ -282,6 +315,8 @@ function CartItem({
                   color='primary'
                   size='small'
                   sx={{ minWidth: 'unset' }}
+                  disabled={applying || !voucherCode.trim() || !Number(orderTotal)}
+                  onClick={handleApplyVoucher}
                 >
                   Apply
                 </Button>
