@@ -8,7 +8,7 @@ import RemoveIcon from '@mui/icons-material/Remove'
  */
 function CartItemQuantity({
   quantity,
-  stock,
+  countInStock,
   productId,
   isMobile = false,
   onQuantityChange
@@ -48,7 +48,7 @@ function CartItemQuantity({
         <IconButton
           size='small'
           onClick={() => onQuantityChange(productId, 1)}
-          disabled={quantity >= stock}
+          disabled={quantity >= countInStock}
           sx={{
             border: 1,
             borderColor: 'divider',
@@ -60,7 +60,7 @@ function CartItemQuantity({
         </IconButton>
       </Box>
 
-      {stock < 10 && (
+      {countInStock < 10 && (
         <Typography
           variant='caption'
           color='error'
@@ -69,7 +69,7 @@ function CartItemQuantity({
             display: 'block'
           }}
         >
-          Only {stock} items left
+          Only {countInStock} items left
         </Typography>
       )}
     </>

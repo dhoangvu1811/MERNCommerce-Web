@@ -12,8 +12,35 @@ import {
 import { formatPrice } from '../../utils/formatUtils'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import { Link } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { addItem } from '~/redux/slices/orderSlice'
+import { useAuth } from '~/hooks/useAuth'
+import { useState } from 'react'
+import LoginDialog from '~/components/auth/LoginDialog'
 
 function ProductCard({ product }) {
+  const dispatch = useDispatch()
+  const { isAuthenticated } = useAuth()
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false)
+
+  const handleAdd = () => {
+    if (!isAuthenticated) {
+      setLoginDialogOpen(true)
+      return
+    }
+    dispatch(
+      addItem({
+        product: {
+          ...product,
+          countInStock: product.countInStock,
+          price: product.price,
+          image: product.image,
+          discount: product.discount
+        },
+        quantity: 1
+      })
+    )
+  }
   return (
     <Card
       elevation={0}
@@ -76,7 +103,9 @@ function ProductCard({ product }) {
                   color='text.secondary'
                   sx={{ textDecoration: 'line-through' }}
                 >
-                  {formatPrice(Math.round(product.price / (1 - product.discount / 100)))}
+                  {formatPrice(
+                    Math.round(product.price / (1 - product.discount / 100))
+                  )}
                 </Typography>
                 <Chip
                   label={`-${product.discount}%`}
@@ -97,10 +126,17 @@ function ProductCard({ product }) {
           color='primary'
           fullWidth
           startIcon={<ShoppingCartIcon />}
+          onClick={handleAdd}
         >
           Thêm vào giỏ
         </Button>
       </CardActions>
+      <LoginDialog
+        open={loginDialogOpen}
+        onClose={() => setLoginDialogOpen(false)}
+        onSuccess={() => setLoginDialogOpen(false)}
+        onSwitchToRegister={() => setLoginDialogOpen(false)}
+      />
     </Card>
   )
 }

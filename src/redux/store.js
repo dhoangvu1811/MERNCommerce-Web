@@ -6,19 +6,21 @@ import { combineReducers } from '@reduxjs/toolkit'
 // Import slices
 import authSlice from './slices/authSlice'
 import userSlice from './slices/userSlice'
+import orderSlice from './slices/orderSlice'
 
 // Persist configuration
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth'],
+  whitelist: ['auth', 'order'],
   blacklist: ['user']
 }
 
 // Combine reducers
 const rootReducer = combineReducers({
   auth: authSlice,
-  user: userSlice
+  user: userSlice,
+  order: orderSlice
 })
 
 // Create persisted reducer

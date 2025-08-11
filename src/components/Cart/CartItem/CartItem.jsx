@@ -192,7 +192,7 @@ function CartItem({
               <Box sx={{ flex: 1 }}>
                 <CartItemQuantity
                   quantity={quantity}
-                  stock={item.product.stock}
+                  countInStock={item.product.countInStock}
                   productId={item.product.id}
                   onQuantityChange={onQuantityChange}
                 />
@@ -240,7 +240,7 @@ function CartItem({
 
                 <CartItemQuantity
                   quantity={quantity}
-                  stock={item.product.stock}
+                  countInStock={item.product.countInStock}
                   productId={item.product.id}
                   isMobile={true}
                   onQuantityChange={onQuantityChange}
@@ -255,9 +255,9 @@ function CartItem({
                 }}
               >
                 <Box>
-                  {item.product.stock < 10 && (
+                  {item.product.countInStock < 10 && (
                     <Typography variant='caption' color='error'>
-                      Only {item.product.stock} items left
+                      Only {item.product.countInStock} items left
                     </Typography>
                   )}
                 </Box>
@@ -315,7 +315,9 @@ function CartItem({
                   color='primary'
                   size='small'
                   sx={{ minWidth: 'unset' }}
-                  disabled={applying || !voucherCode.trim() || !Number(orderTotal)}
+                  disabled={
+                    applying || !voucherCode.trim() || !Number(orderTotal)
+                  }
                   onClick={handleApplyVoucher}
                 >
                   Apply
