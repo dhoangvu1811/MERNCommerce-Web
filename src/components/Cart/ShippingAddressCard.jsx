@@ -70,7 +70,7 @@ function ShippingAddressCard({ address, onChangeClick }) {
             sx={{ mr: 1, color: 'text.secondary', fontSize: '0.9rem' }}
           />
           <Typography fontWeight='medium'>
-            {address.name} | {address.phone}
+            {(address?.name || '') + ' | ' + (address?.phone || '')}
           </Typography>
         </Box>
 
@@ -79,10 +79,10 @@ function ShippingAddressCard({ address, onChangeClick }) {
             sx={{ mr: 1, color: 'text.secondary', fontSize: '0.9rem', mt: 0.3 }}
           />
           <Box>
-            <Typography>{address.address}</Typography>
-            {(address.city || address.province || address.postalCode) && (
+            <Typography>{address?.address || ''}</Typography>
+            {(address?.city || address?.province || address?.postalCode) && (
               <Typography color='text.secondary'>
-                {[address.city, address.province, address.postalCode]
+                {[address?.city, address?.province, address?.postalCode]
                   .filter(Boolean)
                   .join(', ')}
               </Typography>

@@ -1,46 +1,19 @@
-import { useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Box, Container, Grid, Typography } from '@mui/material'
 import RecommendedProducts from '../components/Cart/RecommendedProducts'
 import CartHeader from '../components/Cart/CartHeader'
-import CartItem from '../components/Cart/CartItem'
+import CartItem from '../components/Cart/CartItem/CartItem'
 import ShippingAddressCard from '../components/Cart/ShippingAddressCard'
 import PaymentSummaryCard from '../components/Cart/PaymentSummaryCard'
+import { useSelector, useDispatch } from 'react-redux'
+import {
+  updateQuantity as updateCartQuantity,
+  removeItem as removeCartItem,
+  setShippingAddress as setCartShippingAddress
+} from '~/redux/slices/orderSlice'
+import { useAuth } from '~/hooks/useAuth'
 
-// Mock data
-const cartItems = [
-  {
-    id: 1,
-    shopName: 'Official Apple Store',
-    product: {
-      id: 101,
-      name: 'iPhone 14 Pro Max 256GB',
-      image: '/src/assets/products/productimg.png',
-      price: 29990000,
-      originalPrice: 32990000,
-      color: 'Black',
-      size: '256GB',
-      quantity: 1,
-      stock: 10,
-      deliveryDate: 'Jun 28 - Jun 30'
-    }
-  },
-  {
-    id: 2,
-    shopName: 'Samsung Official',
-    product: {
-      id: 102,
-      name: 'Samsung Galaxy S23 Ultra',
-      image: '/src/assets/products/detail.png',
-      price: 28990000,
-      originalPrice: 31990000,
-      color: 'Blue',
-      size: '512GB',
-      quantity: 2,
-      stock: 5,
-      deliveryDate: 'Jun 29 - Jul 01'
-    }
-  }
-]
+// Items sẽ lấy từ Redux order slice
 
 const recommendedProducts = [
   {
@@ -90,33 +63,50 @@ const recommendedProducts = [
   }
 ]
 
-// Default shipping address
-const defaultShippingAddress = {
-  id: 1,
-  name: 'John Smith',
-  phone: '0987654321',
-  address: '123 Le Loi Street',
-  city: 'District 1',
-  province: 'Ho Chi Minh City',
-  postalCode: '70000',
-  isDefault: true
-}
-
 function CartPage() {
-  // Component state is managed here and passed to child components
+  const dispatch = useDispatch()
+  const { isAuthenticated, currentUser } = useAuth()
+  const items = useSelector((state) => state.order.items)
+  const persistedAddress = useSelector((state) => state.order.shippingAddress)
 
   // State for selected items
   const [selectedItems, setSelectedItems] = useState({})
   const [selectAll, setSelectAll] = useState(false)
-  const [shippingAddress, setShippingAddress] = useState(defaultShippingAddress)
+  // Build default shipping address from current user (auth slice)
+  const userDefaultShippingAddress = useMemo(() => {
+    if (!currentUser) return null
+    const addr = currentUser?.address ?? {}
+    return {
+      id: currentUser?._id ?? 1,
+      name: currentUser?.fullName ?? currentUser?.name ?? '',
+      phone: currentUser?.phone ?? currentUser?.phoneNumber ?? '',
+      address: addr?.street ?? addr?.address ?? currentUser?.address ?? '',
+      city: addr?.city ?? currentUser?.city ?? '',
+      province: addr?.province ?? addr?.state ?? currentUser?.province ?? '',
+      postalCode:
+        addr?.postalCode ?? addr?.zipCode ?? currentUser?.postalCode ?? '',
+      isDefault: true
+    }
+  }, [currentUser])
 
-  const [quantities, setQuantities] = useState(
-    // trả về 1 object với key là product id và value là quantity
-    cartItems.reduce((acc, item) => {
-      acc[item.product.id] = item.product.quantity
-      return acc
-    }, {})
+  const [shippingAddress, setShippingAddress] = useState(
+    persistedAddress || userDefaultShippingAddress
   )
+
+  // Update shipping address when user info loads (if nothing persisted yet)
+  useEffect(() => {
+    if (!persistedAddress && userDefaultShippingAddress) {
+      setShippingAddress(userDefaultShippingAddress)
+    }
+  }, [persistedAddress, userDefaultShippingAddress])
+
+  const quantities = useMemo(() => {
+    const map = {}
+    items?.forEach((it) => {
+      map[it.productId] = it.quantity
+    })
+    return map
+  }, [items])
 
   const [appliedVoucher, setAppliedVoucher] = useState(null)
 
@@ -124,9 +114,9 @@ function CartPage() {
   const totalItems = Object.keys(selectedItems).filter(
     (id) => selectedItems[id]
   ).length
-  const subtotal = cartItems.reduce((sum, item) => {
-    if (selectedItems[item.product.id]) {
-      return sum + item.product.price * quantities[item.product.id]
+  const subtotal = (items || []).reduce((sum, item) => {
+    if (selectedItems[item.productId]) {
+      return sum + Number(item.price) * Number(item.quantity)
     }
     return sum
   }, 0)
@@ -134,7 +124,7 @@ function CartPage() {
   const discount = appliedVoucher?.discount || 0
 
   // Check if all items are selected
-  const allItemsCount = cartItems.length
+  const allItemsCount = items?.length || 0
 
   // Handle select all
   const handleSelectAll = () => {
@@ -142,8 +132,8 @@ function CartPage() {
     setSelectAll(newSelectAll)
 
     const newSelectedItems = {}
-    cartItems.forEach((item) => {
-      newSelectedItems[item.product.id] = newSelectAll
+    ;(items || []).forEach((item) => {
+      newSelectedItems[item.productId] = newSelectAll
     })
     setSelectedItems(newSelectedItems)
   }
@@ -156,32 +146,22 @@ function CartPage() {
     setSelectedItems(newSelectedItems)
 
     // Update select all state
-    const allSelected = cartItems.every(
-      (item) => newSelectedItems[item.product.id]
+    const allSelected = (items || []).every(
+      (item) => newSelectedItems[item.productId]
     )
     setSelectAll(allSelected)
   }
 
   // Handle quantity change
   const handleQuantityChange = (productId, delta) => {
-    const currentQty = quantities[productId]
-    const product = cartItems.find(
-      (item) => item.product.id === productId
-    ).product
-
-    // Đảm bảo số lượng không dưới 1 và không vượt quá số lượng trong kho
-    const newQty = Math.max(1, Math.min(product.stock, currentQty + delta))
-
-    setQuantities({
-      ...quantities,
-      [productId]: newQty
-    })
+    const currentQty = quantities[productId] || 1
+    const newQty = currentQty + delta
+    dispatch(updateCartQuantity({ productId, quantity: Math.max(1, newQty) }))
   }
 
   // Handle item removal
   const handleRemoveItem = (productId) => {
-    // In a real app, this would call an API to remove the item
-    // Implementation would dispatch a redux action or call API
+    dispatch(removeCartItem(productId))
     setSelectedItems((prev) => {
       const newSelectedItems = { ...prev }
       delete newSelectedItems[productId]
@@ -191,10 +171,11 @@ function CartPage() {
 
   // Handle checkout
   const handleCheckout = () => {
-    // Implement checkout logic
-    // In a real app, this would dispatch a redux action or call an API
-    // const selectedItemsList = cartItems.filter(item => selectedItems[item.product.id])
-    // Process checkout with selected items
+    if (!isAuthenticated) {
+      // Yêu cầu đăng nhập trước khi checkout (UI: đã có logic mở dialog ở BuyBox)
+      return
+    }
+    // TODO: dispatch tạo order hoặc điều hướng checkout
   }
 
   // Handle shipping address change
@@ -211,6 +192,7 @@ function CartPage() {
       } else {
         setShippingAddress(newAddress)
       }
+      dispatch(setCartShippingAddress(newAddress))
     }
   }
 
@@ -232,12 +214,30 @@ function CartPage() {
             />
 
             {/* Cart Items */}
-            {cartItems.map((item) => (
+            {items?.map((item) => (
               <CartItem
-                key={item.id}
-                item={item}
-                isSelected={Boolean(selectedItems[item.product.id])}
-                quantity={quantities[item.product.id]}
+                key={item.productId}
+                item={{
+                  id: item.productId,
+                  shopName: 'Shop',
+                  product: {
+                    id: item.productId,
+                    name: item.name,
+                    image: item.image,
+                    price: item.price,
+                    originalPrice:
+                      item?.discount && item.discount > 0
+                        ? Math.round(item.price / (1 - item.discount / 100))
+                        : item.price,
+                    color: item.color || 'N/A',
+                    size: item.size || 'N/A',
+                    quantity: item.quantity,
+                    countInStock: item.countInStock || 999,
+                    deliveryDate: '2-4 days'
+                  }
+                }}
+                isSelected={Boolean(selectedItems?.[item.productId])}
+                quantity={quantities?.[item.productId]}
                 onSelect={handleSelectItem}
                 onQuantityChange={handleQuantityChange}
                 onRemove={handleRemoveItem}

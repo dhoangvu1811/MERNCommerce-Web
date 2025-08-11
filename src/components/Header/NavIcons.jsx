@@ -2,6 +2,8 @@
 import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '~/hooks/useAuth'
+import { useSelector } from 'react-redux'
+import { selectCartCount } from '~/redux/slices/orderSlice'
 import {
   Badge,
   IconButton,
@@ -31,8 +33,8 @@ function NavIcons() {
   const navigate = useNavigate()
   const { isAuthenticated, isAdmin, logout } = useAuth()
 
-  // Placeholder for cart items count
-  const cartItemsCount = 2
+  // Cart items count from Redux
+  const cartItemsCount = useSelector(selectCartCount)
 
   // Account dropdown state
   const [open, setOpen] = useState(false)

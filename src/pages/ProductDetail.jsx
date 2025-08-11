@@ -8,8 +8,7 @@ import {
   useMediaQuery,
   Tabs,
   Tab,
-  CircularProgress,
-  Alert
+  CircularProgress
 } from '@mui/material'
 import ProductBreadcrumbs from '~/components/ProductDetail/ProductBreadcrumbs'
 import ProductGallery from '~/components/ProductDetail/ProductGallery'
@@ -115,20 +114,17 @@ function ProductDetail() {
 
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState(0)
 
   useEffect(() => {
     const fetchProduct = async () => {
       if (!productId) {
-        setError('ID sản phẩm không hợp lệ')
         setLoading(false)
         return
       }
 
       try {
         setLoading(true)
-        setError(null)
 
         const response = await getProductById(productId)
 
@@ -140,17 +136,13 @@ function ProductDetail() {
             colors: ['Đen', 'Trắng'], // Tạm thời hardcode, sẽ cập nhật API sau
             storage: ['128GB', '256GB'], // Tạm thời hardcode, sẽ cập nhật API sau
             numReviews: 0, // Sẽ được cập nhật khi có API reviews
-            stock: response.data.countInStock,
-            sold: response.data.selled || 0,
+            countInStock: response.data.countInStock,
+            selled: response.data.selled || 0,
             brand: 'N/A', // Sẽ được thêm vào API sau
             category: response.data.type
           }
           setProduct(transformedProduct)
-        } else {
-          setError('Không thể tải thông tin sản phẩm')
         }
-      } catch {
-        setError('Có lỗi xảy ra khi tải dữ liệu')
       } finally {
         setLoading(false)
       }
@@ -175,29 +167,7 @@ function ProductDetail() {
     )
   }
 
-  if (error) {
-    return (
-      <Box sx={{ py: 4 }}>
-        <Container maxWidth='xl'>
-          <Alert severity='error' sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        </Container>
-      </Box>
-    )
-  }
-
-  if (!product) {
-    return (
-      <Box sx={{ py: 4 }}>
-        <Container maxWidth='xl'>
-          <Alert severity='info' sx={{ mb: 2 }}>
-            Không tìm thấy sản phẩm
-          </Alert>
-        </Container>
-      </Box>
-    )
-  }
+  if (!product) return null
 
   return (
     <Box sx={{ py: 4 }}>

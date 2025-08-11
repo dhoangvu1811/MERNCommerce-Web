@@ -60,7 +60,7 @@ function ProductInfo({ product, similarProducts }) {
         </Typography>
         <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
           <Typography variant='body2' color='text.secondary'>
-            Đã bán: {product.sold}
+            Đã bán: {product.selled || 0}
           </Typography>
         </Box>
       </Box>
@@ -73,14 +73,16 @@ function ProductInfo({ product, similarProducts }) {
           >
             {formatPrice(product.price)}
           </Typography>
-          {product.originalPrice > product.price && (
+          {product.discount > 0 && (
             <>
               <Typography
                 variant='body1'
                 color='text.secondary'
                 sx={{ ml: 2, textDecoration: 'line-through' }}
               >
-                {formatPrice(product.originalPrice)}
+                {formatPrice(
+                  Math.round(product.price / (1 - product.discount / 100))
+                )}
               </Typography>
               <Chip
                 label={`-${product.discount}%`}
@@ -92,7 +94,7 @@ function ProductInfo({ product, similarProducts }) {
           )}
         </Box>
         <Typography variant='body2' color='success.main'>
-          Còn {product.stock} sản phẩm
+          Còn {product.countInStock} sản phẩm
         </Typography>
       </Box>
       <Divider sx={{ my: 2 }} />

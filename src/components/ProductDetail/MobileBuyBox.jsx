@@ -11,14 +11,46 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 import { formatPrice } from '../../utils/formatUtils'
+import { useAuth } from '~/hooks/useAuth'
+import { useDispatch } from 'react-redux'
+import { addItem } from '~/redux/slices/orderSlice'
+import LoginDialog from '~/components/auth/LoginDialog'
 
 function MobileBuyBox({ product }) {
   const [quantity, setQuantity] = useState(1)
+  const { isAuthenticated } = useAuth()
+  const dispatch = useDispatch()
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false)
 
   const handleQuantityChange = (change) => {
     setQuantity((prevQuantity) =>
-      Math.max(1, Math.min(product.stock, prevQuantity + change))
+      Math.max(1, Math.min(product.countInStock, prevQuantity + change))
     )
+  }
+
+  const ensureAuthOrPrompt = () => {
+    if (!isAuthenticated) {
+      setLoginDialogOpen(true)
+      return false
+    }
+    return true
+  }
+
+  const handleBuyNow = () => {
+    if (!ensureAuthOrPrompt()) return
+    dispatch(
+      addItem({
+        product: {
+          ...product,
+          countInStock: product.countInStock,
+          price: product.price,
+          image: product.images?.[0] || product.image,
+          discount: product.discount
+        },
+        quantity
+      })
+    )
+    // TODO: navigate to checkout
   }
 
   return (
@@ -65,17 +97,28 @@ function MobileBuyBox({ product }) {
               <IconButton
                 size='small'
                 onClick={() => handleQuantityChange(1)}
-                disabled={quantity >= product.stock}
+                disabled={quantity >= product.countInStock}
               >
                 <AddIcon fontSize='small' />
               </IconButton>
             </Box>
-            <Button variant='contained' fullWidth sx={{ py: 1 }}>
+            <Button
+              variant='contained'
+              fullWidth
+              sx={{ py: 1 }}
+              onClick={handleBuyNow}
+            >
               Mua ngay
             </Button>
           </Box>
         </Grid>
       </Grid>
+      <LoginDialog
+        open={loginDialogOpen}
+        onClose={() => setLoginDialogOpen(false)}
+        onSuccess={() => setLoginDialogOpen(false)}
+        onSwitchToRegister={() => setLoginDialogOpen(false)}
+      />
     </Paper>
   )
 }

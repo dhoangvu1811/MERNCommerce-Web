@@ -14,14 +14,64 @@ import RemoveIcon from '@mui/icons-material/Remove'
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
 import ShareIcon from '@mui/icons-material/Share'
 import { formatPrice } from '../../utils/formatUtils'
+import { useAuth } from '~/hooks/useAuth'
+import { useDispatch } from 'react-redux'
+import { addItem } from '~/redux/slices/orderSlice'
+import LoginDialog from '~/components/auth/LoginDialog'
 
 function BuyBox({ product }) {
   const [quantity, setQuantity] = useState(1)
+  const { isAuthenticated } = useAuth()
+  const dispatch = useDispatch()
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false)
 
   const handleQuantityChange = (change) => {
     setQuantity((prevQuantity) =>
-      Math.max(1, Math.min(product.stock, prevQuantity + change))
+      Math.max(1, Math.min(product.countInStock, prevQuantity + change))
     )
+  }
+
+  const ensureAuthOrPrompt = () => {
+    if (!isAuthenticated) {
+      setLoginDialogOpen(true)
+      return false
+    }
+    return true
+  }
+
+  const handleAddToCart = () => {
+    if (!ensureAuthOrPrompt()) return
+    dispatch(
+      addItem({
+        product: {
+          ...product,
+          // đảm bảo các field order slice cần
+          countInStock: product.countInStock,
+          price: product.price,
+          image: product.images?.[0] || product.image,
+          discount: product.discount
+        },
+        quantity
+      })
+    )
+  }
+
+  const handleBuyNow = () => {
+    if (!ensureAuthOrPrompt()) return
+    // Thực tế có thể điều hướng tới trang checkout, ở đây chỉ thêm vào giỏ
+    dispatch(
+      addItem({
+        product: {
+          ...product,
+          countInStock: product.countInStock,
+          price: product.price,
+          image: product.images?.[0] || product.image,
+          discount: product.discount
+        },
+        quantity
+      })
+    )
+    // TODO: điều hướng tới /cart hoặc /checkout sau khi có route
   }
 
   return (
@@ -67,7 +117,7 @@ function BuyBox({ product }) {
             <IconButton
               size='small'
               onClick={() => handleQuantityChange(1)}
-              disabled={quantity >= product.stock}
+              disabled={quantity >= product.countInStock}
             >
               <AddIcon fontSize='small' />
             </IconButton>
@@ -117,10 +167,22 @@ function BuyBox({ product }) {
 
         {/* Action buttons */}
         <Stack spacing={2}>
-          <Button variant='contained' size='large' fullWidth sx={{ py: 1.5 }}>
+          <Button
+            variant='contained'
+            size='large'
+            fullWidth
+            sx={{ py: 1.5 }}
+            onClick={handleBuyNow}
+          >
             Mua ngay
           </Button>
-          <Button variant='outlined' size='large' fullWidth sx={{ py: 1.5 }}>
+          <Button
+            variant='outlined'
+            size='large'
+            fullWidth
+            sx={{ py: 1.5 }}
+            onClick={handleAddToCart}
+          >
             Thêm vào giỏ hàng
           </Button>
           <Box sx={{ display: 'flex', gap: 1 }}>
@@ -143,6 +205,12 @@ function BuyBox({ product }) {
           </Box>
         </Stack>
       </Paper>
+      <LoginDialog
+        open={loginDialogOpen}
+        onClose={() => setLoginDialogOpen(false)}
+        onSuccess={() => setLoginDialogOpen(false)}
+        onSwitchToRegister={() => setLoginDialogOpen(false)}
+      />
     </Box>
   )
 }
