@@ -10,7 +10,9 @@ function PaymentSummaryCard({
   shippingFee = 30000,
   discount = 10000,
   totalItems,
-  onCheckout
+  onCheckout,
+  ctaLabel = 'Checkout',
+  disabled = false
 }) {
   const showAmounts = subtotal > 0
   const total = showAmounts ? subtotal + shippingFee - discount : 0
@@ -59,11 +61,11 @@ function PaymentSummaryCard({
           variant='contained'
           color='error'
           size='large'
-          disabled={totalItems === 0}
+          disabled={disabled || totalItems === 0}
           onClick={onCheckout}
           sx={{ mt: 2 }}
         >
-          Checkout ({totalItems})
+          {ctaLabel} ({totalItems})
         </Button>
       </Stack>
     </Paper>

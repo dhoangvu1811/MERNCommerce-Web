@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box, Typography, Button, Paper } from '@mui/material'
 import PersonIcon from '@mui/icons-material/Person'
 import HomeIcon from '@mui/icons-material/Home'
@@ -8,7 +8,12 @@ import EditAddressDialog from './EditAddressDialog'
 /**
  * Shipping address card component
  */
-function ShippingAddressCard({ address, onChangeClick }) {
+function ShippingAddressCard({
+  address,
+  onChangeClick,
+  requestEdit = false,
+  onEditHandled
+}) {
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const handleOpenDialog = () => {
@@ -25,6 +30,14 @@ function ShippingAddressCard({ address, onChangeClick }) {
       onChangeClick(updatedAddress)
     }
   }
+
+  // Cho phép parent yêu cầu mở dialog khi cần (ví dụ trước khi checkout)
+  useEffect(() => {
+    if (requestEdit) {
+      setDialogOpen(true)
+      onEditHandled && onEditHandled()
+    }
+  }, [requestEdit, onEditHandled])
 
   return (
     <Paper
