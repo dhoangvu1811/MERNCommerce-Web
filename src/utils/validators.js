@@ -11,3 +11,8 @@ export const PASSWORD_RULE_MESSAGE =
 // Liên quan đến Validate File
 export const LIMIT_COMMON_FILE_SIZE = 10485760 // byte = 10 MB
 export const ALLOW_COMMON_FILE_TYPES = ['image/jpg', 'image/jpeg', 'image/png']
+
+// Voucher
+export const VOUCHER_CODE_RULE = /^[A-Z0-9-_]+$/
+export const VOUCHER_CODE_RULE_MESSAGE =
+  'Chỉ cho phép A-Z, 0-9, dấu gạch ngang (-) và gạch dưới (_).'
