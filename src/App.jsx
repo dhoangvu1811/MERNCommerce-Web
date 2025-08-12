@@ -15,6 +15,7 @@ import AdminDashboard from './pages/Admin/AdminDashboard'
 import AdminRouteWrapper from './components/auth/AdminRouteWrapper'
 import MainLayout from './layouts/MainLayout'
 import Vouchers from './pages/Vouchers'
+import Checkout from './pages/Checkout'
 
 function AppContent() {
   const navigate = useNavigate()
@@ -76,6 +77,7 @@ function AppContent() {
           <Route path='/account' element={<UserAccount />} />
           <Route path='/orders' element={<MyOrders />} />
           <Route path='/cart' element={<CartPage />} />
+          <Route path='/checkout' element={<Checkout />} />
           <Route path='/support' element={<SupportCenter />} />
           <Route path='/vouchers' element={<Vouchers />} />
         </Route>

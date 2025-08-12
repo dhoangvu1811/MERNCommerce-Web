@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { computeOriginalPrice } from '~/utils/formatUtils'
 import { Box, Container, Grid, Typography } from '@mui/material'
 import RecommendedProducts from '../components/Cart/RecommendedProducts'
@@ -66,6 +67,7 @@ const recommendedProducts = [
 
 function CartPage() {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const { isAuthenticated, currentUser } = useAuth()
   const items = useSelector((state) => state.order.items)
   const persistedAddress = useSelector((state) => state.order.shippingAddress)
@@ -108,6 +110,8 @@ function CartPage() {
   }, [items])
 
   const [appliedVoucher, setAppliedVoucher] = useState(null)
+  const [requireEditAddress, setRequireEditAddress] = useState(false)
+  const [addressConfirmedAt, setAddressConfirmedAt] = useState(null)
 
   // Calculate total selected items and price
   const totalItems = Object.keys(selectedItems).filter(
@@ -174,7 +178,22 @@ function CartPage() {
       // Yêu cầu đăng nhập trước khi checkout (UI: đã có logic mở dialog ở BuyBox)
       return
     }
-    // TODO: dispatch tạo order hoặc điều hướng checkout
+    // Bắt buộc người dùng cập nhật/ xác nhận địa chỉ giao hàng trước khi checkout
+    const requiredFields = ['name', 'phone', 'address']
+    const hasValidAddress = requiredFields.every(
+      (k) =>
+        shippingAddress && String(shippingAddress[k] || '').trim().length > 0
+    )
+    if (!hasValidAddress) {
+      setRequireEditAddress(true)
+      return
+    }
+    // Optional: enforce reconfirmation if user just logged in and never confirmed
+    if (!addressConfirmedAt) {
+      setRequireEditAddress(true)
+      return
+    }
+    navigate('/checkout')
   }
 
   // Handle shipping address change
@@ -192,6 +211,7 @@ function CartPage() {
         setShippingAddress(newAddress)
       }
       dispatch(setCartShippingAddress(newAddress))
+      setAddressConfirmedAt(Date.now())
     }
   }
 
@@ -260,6 +280,8 @@ function CartPage() {
               <ShippingAddressCard
                 address={shippingAddress}
                 onChangeClick={handleAddressChange}
+                requestEdit={requireEditAddress}
+                onEditHandled={() => setRequireEditAddress(false)}
               />
 
               {/* Payment Summary */}
