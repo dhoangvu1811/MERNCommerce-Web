@@ -12,13 +12,7 @@ import {
 } from '@mui/material'
 import LocalOfferIcon from '@mui/icons-material/LocalOffer'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
-import { formatPrice } from '../../utils/formatUtils'
-
-const formatPeriod = (startDate, endDate) => {
-  const sd = startDate ? new Date(startDate).toLocaleDateString('vi-VN') : '-'
-  const ed = endDate ? new Date(endDate).toLocaleDateString('vi-VN') : '-'
-  return `${sd} → ${ed}`
-}
+import { formatPrice, formatDate } from '../../utils/formatUtils'
 
 const VoucherCard = ({ voucher, onApply }) => {
   const {
@@ -68,7 +62,7 @@ const VoucherCard = ({ voucher, onApply }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <AccessTimeIcon fontSize='small' color='action' />
           <Typography variant='body2'>
-            {formatPeriod(startDate, endDate)}
+            {`${formatDate(startDate)} → ${formatDate(endDate)}`}
           </Typography>
         </Box>
 

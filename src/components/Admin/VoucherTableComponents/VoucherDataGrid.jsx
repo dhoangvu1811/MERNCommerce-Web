@@ -13,7 +13,7 @@ import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
-import { formatPrice } from '../../../utils/formatUtils'
+import { formatPrice, formatDate } from '../../../utils/formatUtils'
 
 const VoucherDataGrid = ({
   vouchers = [],
@@ -35,16 +35,7 @@ const VoucherDataGrid = ({
     }
   }
 
-  // Helper: format date in UTC to avoid timezone shifting
-  const formatDateUTC = (raw) => {
-    if (!raw) return '-'
-    const d = new Date(raw)
-    if (isNaN(d)) return '-'
-    const dd = String(d.getUTCDate()).padStart(2, '0')
-    const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
-    const yyyy = d.getUTCFullYear()
-    return `${dd}/${mm}/${yyyy}`
-  }
+  // Dùng util chung để tránh lệch timezone
 
   const columns = [
     { field: 'code', headerName: 'Mã', minWidth: 120 },
@@ -90,10 +81,20 @@ const VoucherDataGrid = ({
       minWidth: 220,
       renderCell: (params) => {
         const row = params?.row || {}
-        const startRaw = row.startDate ?? row.start_date
-        const endRaw = row.endDate ?? row.end_date
-        const sd = formatDateUTC(startRaw)
-        const ed = formatDateUTC(endRaw)
+        const startRaw = row.startDate
+        const endRaw = row.endDate
+        const sd = formatDate(startRaw, {
+          utc: true,
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric'
+        })
+        const ed = formatDate(endRaw, {
+          utc: true,
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric'
+        })
         return <Typography variant='body2'>{`${sd} → ${ed}`}</Typography>
       }
     },
@@ -103,11 +104,11 @@ const VoucherDataGrid = ({
       width: 130,
       renderCell: (params) => {
         const row = params?.row || {}
-        const rawUsed = row.usedCount ?? row.used_count
+        const rawUsed = row.usedCount
         const usedNum = Number(rawUsed)
         const used = Number.isFinite(usedNum) && usedNum >= 0 ? usedNum : 0
 
-        const rawLimit = row.usageLimit ?? row.usage_limit
+        const rawLimit = row.usageLimit
         let displayLimit
         if (rawLimit === 0 || rawLimit === '0') {
           displayLimit = '∞'

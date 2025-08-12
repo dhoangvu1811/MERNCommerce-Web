@@ -58,7 +58,10 @@ function CartItem({
   }
 
   const handleApplyVoucher = async () => {
-    const trimmed = voucherCode.trim()
+    const trimmed = voucherCode
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9-_]/g, '')
     if (!trimmed) return
     // Use cart subtotal from props to verify voucher amount
     const total = Number(orderTotal) || 0

@@ -14,7 +14,15 @@ import {
   FormControlLabel,
   Switch
 } from '@mui/material'
-import { FIELD_REQUIRED_MESSAGE } from '../../../utils/validators'
+import {
+  FIELD_REQUIRED_MESSAGE,
+  VOUCHER_CODE_RULE,
+  VOUCHER_CODE_RULE_MESSAGE
+} from '../../../utils/validators'
+import {
+  toDateTimeLocal,
+  sanitizeVoucherCode
+} from '../../../utils/formatUtils'
 
 const VoucherFormDrawer = ({
   open,
@@ -23,6 +31,8 @@ const VoucherFormDrawer = ({
   voucher = null,
   title
 }) => {
+  // Dùng util toDateTimeLocal từ utils/formatUtils
+
   const { control, handleSubmit, reset, watch } = useForm({
     defaultValues: {
       code: voucher?.code || '',
@@ -30,8 +40,8 @@ const VoucherFormDrawer = ({
       amount: voucher?.amount ?? 0,
       maxDiscount: voucher?.maxDiscount ?? 0,
       minOrderValue: voucher?.minOrderValue ?? 0,
-      startDate: voucher?.startDate ? voucher.startDate.slice(0, 16) : '',
-      endDate: voucher?.endDate ? voucher.endDate.slice(0, 16) : '',
+      startDate: toDateTimeLocal(voucher?.startDate),
+      endDate: toDateTimeLocal(voucher?.endDate),
       usageLimit: voucher?.usageLimit ?? 0,
       usedCount: voucher?.usedCount ?? 0,
       isActive: voucher?.isActive ?? true
@@ -46,8 +56,8 @@ const VoucherFormDrawer = ({
         amount: voucher.amount,
         maxDiscount: voucher.maxDiscount ?? 0,
         minOrderValue: voucher.minOrderValue ?? 0,
-        startDate: voucher.startDate ? voucher.startDate.slice(0, 16) : '',
-        endDate: voucher.endDate ? voucher.endDate.slice(0, 16) : '',
+        startDate: toDateTimeLocal(voucher.startDate),
+        endDate: toDateTimeLocal(voucher.endDate),
         usageLimit: voucher.usageLimit ?? 0,
         usedCount: voucher.usedCount ?? 0,
         isActive: voucher.isActive ?? true
@@ -111,7 +121,11 @@ const VoucherFormDrawer = ({
           control={control}
           rules={{
             required: FIELD_REQUIRED_MESSAGE,
-            minLength: { value: 3, message: 'Mã tối thiểu 3 ký tự' }
+            minLength: { value: 3, message: 'Mã tối thiểu 3 ký tự' },
+            pattern: {
+              value: VOUCHER_CODE_RULE,
+              message: VOUCHER_CODE_RULE_MESSAGE
+            }
           }}
           render={({ field, fieldState: { error } }) => (
             <TextField
@@ -120,6 +134,9 @@ const VoucherFormDrawer = ({
               fullWidth
               error={!!error}
               helperText={error?.message}
+              onChange={(e) =>
+                field.onChange(sanitizeVoucherCode(e.target.value))
+              }
             />
           )}
         />
@@ -143,7 +160,7 @@ const VoucherFormDrawer = ({
           control={control}
           rules={{
             required: FIELD_REQUIRED_MESSAGE,
-            min: { value: 0, message: 'Không âm' }
+            min: { value: 0.01, message: 'Giá trị phải > 0' }
           }}
           render={({ field, fieldState: { error } }) => (
             <TextField
@@ -153,6 +170,10 @@ const VoucherFormDrawer = ({
               fullWidth
               error={!!error}
               helperText={error?.message}
+              inputProps={{
+                step: type === 'percent' ? '1' : '0.01',
+                min: '0.01'
+              }}
               onChange={(e) => field.onChange(Number(e.target.value))}
             />
           )}
@@ -174,6 +195,7 @@ const VoucherFormDrawer = ({
                   e.target.value === '' ? '' : Number(e.target.value)
                 )
               }
+              inputProps={{ step: '0.01', min: '0' }}
             />
           )}
         />
@@ -194,6 +216,7 @@ const VoucherFormDrawer = ({
                   e.target.value === '' ? '' : Number(e.target.value)
                 )
               }
+              inputProps={{ step: '0.01', min: '0' }}
             />
           )}
         />
@@ -242,6 +265,7 @@ const VoucherFormDrawer = ({
                     e.target.value === '' ? '' : Number(e.target.value)
                   )
                 }
+                inputProps={{ step: '1', min: '0' }}
               />
             )}
           />
@@ -261,6 +285,7 @@ const VoucherFormDrawer = ({
                     e.target.value === '' ? '' : Number(e.target.value)
                   )
                 }
+                inputProps={{ step: '1', min: '0' }}
               />
             )}
           />
