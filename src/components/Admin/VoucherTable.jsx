@@ -169,7 +169,7 @@ const VoucherTable = () => {
     setVouchers((prev) =>
       prev.map((v) =>
         v._id === id
-          ? { ...v, isActive: !v.isActive, updatedAt: new Date().toISOString() }
+          ? { ...v, isActive: !v.isActive, updatedAt: Date.now() }
           : v
       )
     )

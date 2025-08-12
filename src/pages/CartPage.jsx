@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { computeOriginalPrice } from '~/utils/formatUtils'
 import { Box, Container, Grid, Typography } from '@mui/material'
 import RecommendedProducts from '../components/Cart/RecommendedProducts'
 import CartHeader from '../components/Cart/CartHeader'
@@ -74,19 +75,17 @@ function CartPage() {
   // State for selected items
   const [selectedItems, setSelectedItems] = useState({})
   const [selectAll, setSelectAll] = useState(false)
-  // Build default shipping address from current user (auth slice)
+  // Build default shipping address from current user (auth slice) - standardized to user schema
   const userDefaultShippingAddress = useMemo(() => {
     if (!currentUser) return null
-    const addr = currentUser?.address ?? {}
     return {
       id: currentUser?._id ?? 1,
-      name: currentUser?.fullName ?? currentUser?.name ?? '',
-      phone: currentUser?.phone ?? currentUser?.phoneNumber ?? '',
-      address: addr?.street ?? addr?.address ?? currentUser?.address ?? '',
-      city: addr?.city ?? currentUser?.city ?? '',
-      province: addr?.province ?? addr?.state ?? currentUser?.province ?? '',
-      postalCode:
-        addr?.postalCode ?? addr?.zipCode ?? currentUser?.postalCode ?? '',
+      name: currentUser?.name || '',
+      phone: currentUser?.phone || '',
+      address: currentUser?.address || '', // user.address is a string per schema
+      city: '',
+      province: '',
+      postalCode: '',
       isDefault: true
     }
   }, [currentUser])
@@ -245,10 +244,7 @@ function CartPage() {
                     name: item.name,
                     image: item.image,
                     price: item.price,
-                    originalPrice:
-                      item?.discount && item.discount > 0
-                        ? Math.round(item.price / (1 - item.discount / 100))
-                        : item.price,
+                    originalPrice: computeOriginalPrice(item.price, item?.discount),
                     color: item.color || 'N/A',
                     size: item.size || 'N/A',
                     quantity: item.quantity,
