@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
   Box,
   Container,
@@ -8,15 +8,19 @@ import {
   Divider,
   Stack
 } from '@mui/material'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
+import { setPaymentMethod } from '~/redux/slices/orderSlice'
 import ShippingAddressCard from '../components/Cart/ShippingAddressCard'
 import PaymentSummaryCard from '../components/Cart/PaymentSummaryCard'
 import PaymentMethodSelector from '../components/Cart/PaymentMethodSelector'
 import { formatPrice } from '../utils/formatUtils'
 
 function Checkout() {
+  const dispatch = useDispatch()
   const items = useSelector((state) => state.order.items)
   const shippingAddress = useSelector((state) => state.order.shippingAddress)
+  const shippingFee = useSelector((state) => state.order.shippingFee)
+  const paymentMethod = useSelector((state) => state.order.paymentMethod)
 
   const subtotal = useMemo(
     () =>
@@ -27,7 +31,6 @@ function Checkout() {
     [items]
   )
 
-  const [paymentMethod, setPaymentMethod] = useState('')
   const canPlaceOrder = (items?.length ?? 0) > 0 && Boolean(paymentMethod)
 
   return (
@@ -103,7 +106,7 @@ function Checkout() {
             {/* Payment Method */}
             <PaymentMethodSelector
               value={paymentMethod}
-              onChange={setPaymentMethod}
+              onChange={(v) => dispatch(setPaymentMethod(v))}
             />
           </Grid>
 
@@ -111,7 +114,7 @@ function Checkout() {
           <Grid size={{ xs: 12, md: 4 }}>
             <PaymentSummaryCard
               subtotal={subtotal}
-              shippingFee={30000}
+              shippingFee={shippingFee}
               discount={0}
               totalItems={(items || []).reduce(
                 (n, it) => n + Number(it.quantity),

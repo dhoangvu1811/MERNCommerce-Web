@@ -15,7 +15,9 @@ import { createSlice } from '@reduxjs/toolkit'
 const initialState = {
   items: [],
   voucher: null,
-  shippingAddress: null
+  shippingAddress: null,
+  paymentMethod: '',
+  shippingFee: 30000
 }
 
 const findProductId = (product) => {
@@ -33,9 +35,7 @@ const orderSlice = createSlice({
 
       const name = product?.name || product?.title || 'Sản phẩm'
       const price = Number(product?.price) || 0
-      const countInStock = Number(
-        product?.countInStock || product?.stock || 0
-      )
+      const countInStock = Number(product?.countInStock || product?.stock || 0)
       const image = product?.image || product?.images?.[0] || ''
       const discount = Number(product?.discount) || 0
 
@@ -84,6 +84,14 @@ const orderSlice = createSlice({
     setShippingAddress: (state, action) => {
       state.shippingAddress = action.payload || null
     },
+    setPaymentMethod: (state, action) => {
+      state.paymentMethod = action.payload || ''
+    },
+    setShippingFee: (state, action) => {
+      const fee = Number(action.payload)
+      state.shippingFee =
+        Number.isFinite(fee) && fee >= 0 ? fee : state.shippingFee
+    },
     applyVoucher: (state, action) => {
       state.voucher = action.payload || null
     },
@@ -99,6 +107,8 @@ export const {
   updateQuantity,
   clearCart,
   setShippingAddress,
+  setPaymentMethod,
+  setShippingFee,
   applyVoucher,
   removeVoucher
 } = orderSlice.actions

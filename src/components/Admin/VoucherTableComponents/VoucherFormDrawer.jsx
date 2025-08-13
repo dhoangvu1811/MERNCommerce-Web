@@ -160,7 +160,19 @@ const VoucherFormDrawer = ({
           control={control}
           rules={{
             required: FIELD_REQUIRED_MESSAGE,
-            min: { value: 0.01, message: 'Giá trị phải > 0' }
+            validate: (v) => {
+              const val = Number(v)
+              if (!Number.isFinite(val)) return 'Giá trị không hợp lệ'
+              if (type === 'percent') {
+                if (!Number.isInteger(val)) return 'Phần trăm phải là số nguyên'
+                if (val < 1 || val > 100)
+                  return 'Phần trăm phải trong khoảng 1 - 100'
+                return true
+              }
+              // fixed amount (VND)
+              if (val <= 0) return 'Giá trị phải > 0'
+              return true
+            }
           }}
           render={({ field, fieldState: { error } }) => (
             <TextField
@@ -172,7 +184,8 @@ const VoucherFormDrawer = ({
               helperText={error?.message}
               inputProps={{
                 step: type === 'percent' ? '1' : '0.01',
-                min: '0.01'
+                min: type === 'percent' ? '1' : '0.01',
+                max: type === 'percent' ? '100' : undefined
               }}
               onChange={(e) => field.onChange(Number(e.target.value))}
             />
