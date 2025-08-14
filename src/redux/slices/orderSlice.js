@@ -4,11 +4,12 @@ import { createSlice } from '@reduxjs/toolkit'
 // {
 //   productId: string | number,
 //   name: string,
-//   price: number,
+//   price: number, // Giá gốc
+//   discountedPrice: number, // Giá sau giảm giá
 //   image: string,
 //   countInStock: number,
 //   quantity: number,
-//   discount?: number,
+//   discount?: number, // Phần trăm giảm giá
 //   // có thể mở rộng: attributes, shopId, variant...
 // }
 
@@ -34,7 +35,8 @@ const orderSlice = createSlice({
       if (!productId) return
 
       const name = product?.name || product?.title || 'Sản phẩm'
-      const price = Number(product?.price) || 0
+      const price = Number(product?.price) || 0 // Giá gốc
+      const discountedPrice = Number(product?.discountedPrice) || price // Giá sau giảm giá
       const countInStock = Number(product?.countInStock || product?.stock || 0)
       const image = product?.image || product?.images?.[0] || ''
       const discount = Number(product?.discount) || 0
@@ -50,6 +52,7 @@ const orderSlice = createSlice({
         // cập nhật thông tin cơ bản nếu có thay đổi (giá, tồn kho, ảnh, tên)
         existing.name = name
         existing.price = price
+        existing.discountedPrice = discountedPrice
         existing.image = image
         existing.countInStock = countInStock
         existing.discount = discount
@@ -57,7 +60,8 @@ const orderSlice = createSlice({
         state.items.push({
           productId,
           name,
-          price,
+          price, // Giá gốc
+          discountedPrice, // Giá sau giảm giá
           image,
           countInStock,
           discount,
@@ -116,6 +120,21 @@ export const {
 export const selectCartCount = (state) =>
   state.order?.items?.reduce(
     (sum, it) => sum + (Number(it.quantity) || 0),
+    0
+  ) || 0
+
+// Selector để tính tổng tiền giỏ hàng (sử dụng giá sau giảm giá)
+export const selectCartSubtotal = (state) =>
+  state.order?.items?.reduce(
+    (sum, it) =>
+      sum + (Number(it.discountedPrice || it.price) * Number(it.quantity) || 0),
+    0
+  ) || 0
+
+// Selector để tính tổng tiền giỏ hàng theo giá gốc
+export const selectCartOriginalSubtotal = (state) =>
+  state.order?.items?.reduce(
+    (sum, it) => sum + (Number(it.price) * Number(it.quantity) || 0),
     0
   ) || 0
 

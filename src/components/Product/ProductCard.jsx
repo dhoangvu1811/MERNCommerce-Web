@@ -9,7 +9,7 @@ import {
   Box,
   Chip
 } from '@mui/material'
-import { formatPrice } from '../../utils/formatUtils'
+import { formatPrice, calculateDiscountedPrice } from '../../utils/formatUtils'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import { Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
@@ -23,6 +23,12 @@ function ProductCard({ product }) {
   const { isAuthenticated } = useAuth()
   const [loginDialogOpen, setLoginDialogOpen] = useState(false)
 
+  // Tính giá sau giảm giá
+  const discountedPrice = calculateDiscountedPrice(
+    product.price,
+    product.discount || 0
+  )
+
   const handleAdd = () => {
     if (!isAuthenticated) {
       setLoginDialogOpen(true)
@@ -33,7 +39,8 @@ function ProductCard({ product }) {
         product: {
           ...product,
           countInStock: product.countInStock,
-          price: product.price,
+          price: product.price, // Giá gốc
+          discountedPrice: discountedPrice, // Giá sau giảm giá
           image: product.image,
           discount: product.discount
         },
@@ -41,6 +48,7 @@ function ProductCard({ product }) {
       })
     )
   }
+
   return (
     <Card
       elevation={0}
@@ -93,27 +101,31 @@ function ProductCard({ product }) {
           </Box>
           {/* Price Section */}
           <Box>
-            <Typography variant='h6' color='primary' fontWeight='bold'>
-              {formatPrice(product.price)}
-            </Typography>
-            {product.discount > 0 && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography
-                  variant='body2'
-                  color='text.secondary'
-                  sx={{ textDecoration: 'line-through' }}
-                >
-                  {formatPrice(
-                    Math.round(product.price / (1 - product.discount / 100))
-                  )}
+            {product.discount > 0 ? (
+              <>
+                <Typography variant='h6' color='primary' fontWeight='bold'>
+                  {formatPrice(discountedPrice)}
                 </Typography>
-                <Chip
-                  label={`-${product.discount}%`}
-                  color='error'
-                  size='small'
-                  sx={{ fontWeight: 'bold', fontSize: '0.7rem', height: 20 }}
-                />
-              </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{ textDecoration: 'line-through' }}
+                  >
+                    {formatPrice(product.price)}
+                  </Typography>
+                  <Chip
+                    label={`-${product.discount}%`}
+                    color='error'
+                    size='small'
+                    sx={{ fontWeight: 'bold', fontSize: '0.7rem', height: 20 }}
+                  />
+                </Box>
+              </>
+            ) : (
+              <Typography variant='h6' color='primary' fontWeight='bold'>
+                {formatPrice(product.price)}
+              </Typography>
             )}
           </Box>
         </CardContent>
