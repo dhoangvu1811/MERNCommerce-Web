@@ -20,6 +20,27 @@ export const formatPrice = (value) => {
 }
 
 /**
+ * Tính giá sau giảm giá từ giá gốc và phần trăm giảm giá
+ * @param {number} originalPrice - Giá gốc của sản phẩm
+ * @param {number} discountPercent - Phần trăm giảm giá (0-100)
+ * @returns {number} Giá sau giảm giá
+ */
+export const calculateDiscountedPrice = (originalPrice, discountPercent) => {
+  const price = Number(originalPrice)
+  const discount = Number(discountPercent)
+
+  if (
+    !Number.isFinite(price) ||
+    !Number.isFinite(discount) ||
+    discount < 0 ||
+    discount >= 100
+  ) {
+    return price
+  }
+
+  return Math.round(price * (1 - discount / 100))
+}
+/**
  * Định dạng ngày nhất quán theo vi-VN.
  * raw: ISO string | timestamp | Date
  * options:
@@ -63,16 +84,6 @@ export const toDateTimeLocal = (raw) => {
 }
 
 // Đã loại bỏ các helper cũ: formatDateVi, formatDateUTCVi, formatPeriodVi (đã migrate sang formatDate)
-
-/**
- * Tính originalPrice từ price sau giảm và phần trăm discount
- */
-export const computeOriginalPrice = (price, discountPercent) => {
-  const p = Number(price)
-  const d = Number(discountPercent)
-  if (!Number.isFinite(p) || !Number.isFinite(d) || d <= 0 || d >= 100) return p
-  return Math.round(p / (1 - d / 100))
-}
 
 /**
  * Chuẩn hóa mã voucher: Uppercase và loại bỏ ký tự không hợp lệ theo pattern

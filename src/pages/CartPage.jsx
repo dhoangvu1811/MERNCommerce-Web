@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { computeOriginalPrice } from '~/utils/formatUtils'
 import { Box, Container, Grid, Typography } from '@mui/material'
 import RecommendedProducts from '../components/Cart/RecommendedProducts'
 import CartHeader from '../components/Cart/CartHeader'
@@ -11,7 +10,8 @@ import { useSelector, useDispatch } from 'react-redux'
 import {
   updateQuantity as updateCartQuantity,
   removeItem as removeCartItem,
-  setShippingAddress as setCartShippingAddress
+  setShippingAddress as setCartShippingAddress,
+  selectCartSubtotal
 } from '~/redux/slices/orderSlice'
 import { useAuth } from '~/hooks/useAuth'
 
@@ -23,7 +23,6 @@ const recommendedProducts = [
     name: 'AirPods Pro 2',
     image: '/src/assets/products/detail.png',
     price: 5990000,
-    originalPrice: 6990000,
     discount: 14,
     freeShipping: true
   },
@@ -32,7 +31,6 @@ const recommendedProducts = [
     name: 'iPhone 14 Pro Max Silicon Case',
     image: '/src/assets/products/iphone-1.jpg',
     price: 790000,
-    originalPrice: 990000,
     discount: 20,
     freeShipping: true
   },
@@ -41,7 +39,6 @@ const recommendedProducts = [
     name: '20W USB-C Fast Charger',
     image: '/src/assets/products/detail.png',
     price: 590000,
-    originalPrice: 790000,
     discount: 25,
     freeShipping: true
   },
@@ -50,7 +47,6 @@ const recommendedProducts = [
     name: 'USB-C to Lightning Cable',
     image: '/src/assets/products/iphone-1.jpg',
     price: 490000,
-    originalPrice: 590000,
     discount: 17,
     freeShipping: true
   },
@@ -59,7 +55,6 @@ const recommendedProducts = [
     name: 'iPhone Tempered Glass Screen Protector',
     image: '/src/assets/products/detail.png',
     price: 290000,
-    originalPrice: 390000,
     discount: 26,
     freeShipping: true
   }
@@ -117,9 +112,13 @@ function CartPage() {
   const totalItems = Object.keys(selectedItems).filter(
     (id) => selectedItems[id]
   ).length
+
+  // Tính subtotal dựa trên giá sau giảm giá của các sản phẩm được chọn
   const subtotal = (items || []).reduce((sum, item) => {
     if (selectedItems[item.productId]) {
-      return sum + Number(item.price) * Number(item.quantity)
+      // Sử dụng discountedPrice nếu có, không thì dùng price
+      const itemPrice = item.discountedPrice || item.price
+      return sum + Number(itemPrice) * Number(item.quantity)
     }
     return sum
   }, 0)
@@ -243,8 +242,8 @@ function CartPage() {
                     id: item.productId,
                     name: item.name,
                     image: item.image,
-                    price: item.price,
-                    originalPrice: computeOriginalPrice(item.price, item?.discount),
+                    price: item.price, // Giá gốc
+                    discount: item.discount || 0, // Phần trăm giảm giá
                     color: item.color || 'N/A',
                     size: item.size || 'N/A',
                     quantity: item.quantity,

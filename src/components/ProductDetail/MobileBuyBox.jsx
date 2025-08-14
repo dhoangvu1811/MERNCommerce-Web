@@ -10,7 +10,7 @@ import {
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
-import { formatPrice } from '../../utils/formatUtils'
+import { formatPrice, calculateDiscountedPrice } from '../../utils/formatUtils'
 import { useAuth } from '~/hooks/useAuth'
 import { useDispatch } from 'react-redux'
 import { addItem } from '~/redux/slices/orderSlice'
@@ -21,6 +21,14 @@ function MobileBuyBox({ product }) {
   const { isAuthenticated } = useAuth()
   const dispatch = useDispatch()
   const [loginDialogOpen, setLoginDialogOpen] = useState(false)
+
+  // Tính giá sau giảm giá
+  const discountedPrice = calculateDiscountedPrice(
+    product.price,
+    product.discount || 0
+  )
+  // Giá hiển thị cho người dùng (giá sau giảm giá nếu có, không thì giá gốc)
+  const displayPrice = product.discount > 0 ? discountedPrice : product.price
 
   const handleQuantityChange = (change) => {
     setQuantity((prevQuantity) =>
@@ -43,7 +51,8 @@ function MobileBuyBox({ product }) {
         product: {
           ...product,
           countInStock: product.countInStock,
-          price: product.price,
+          price: product.price, // Giá gốc
+          discountedPrice: discountedPrice, // Giá sau giảm giá
           image: product.images?.[0] || product.image,
           discount: product.discount
         },
@@ -71,8 +80,17 @@ function MobileBuyBox({ product }) {
               Tổng tiền:
             </Typography>
             <Typography variant='h5' fontWeight='bold' color='primary'>
-              {formatPrice(product.price * quantity)}
+              {formatPrice(displayPrice * quantity)}
             </Typography>
+            {product.discount > 0 && (
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{ textDecoration: 'line-through' }}
+              >
+                {formatPrice(product.price * quantity)}
+              </Typography>
+            )}
           </Box>
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>

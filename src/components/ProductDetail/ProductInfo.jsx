@@ -13,13 +13,19 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined'
 import SimilarProducts from './SimilarProducts'
-import { formatPrice } from '../../utils/formatUtils'
+import { formatPrice, calculateDiscountedPrice } from '../../utils/formatUtils'
 
 function ProductInfo({ product, similarProducts }) {
   const [showFullDescription, setShowFullDescription] = useState(false)
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || '')
   const [selectedStorage, setSelectedStorage] = useState(
     product.storage?.[0] || ''
+  )
+
+  // Tính giá sau giảm giá
+  const discountedPrice = calculateDiscountedPrice(
+    product.price,
+    product.discount || 0
   )
 
   const shortDescription = product.description
@@ -66,23 +72,21 @@ function ProductInfo({ product, similarProducts }) {
       </Box>
       <Box sx={{ mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', mb: 1 }}>
-          <Typography
-            variant='h4'
-            color='primary.main'
-            sx={{ fontWeight: 'bold' }}
-          >
-            {formatPrice(product.price)}
-          </Typography>
-          {product.discount > 0 && (
+          {product.discount > 0 ? (
             <>
+              <Typography
+                variant='h4'
+                color='primary.main'
+                sx={{ fontWeight: 'bold' }}
+              >
+                {formatPrice(discountedPrice)}
+              </Typography>
               <Typography
                 variant='body1'
                 color='text.secondary'
                 sx={{ ml: 2, textDecoration: 'line-through' }}
               >
-                {formatPrice(
-                  Math.round(product.price / (1 - product.discount / 100))
-                )}
+                {formatPrice(product.price)}
               </Typography>
               <Chip
                 label={`-${product.discount}%`}
@@ -91,6 +95,14 @@ function ProductInfo({ product, similarProducts }) {
                 sx={{ ml: 2 }}
               />
             </>
+          ) : (
+            <Typography
+              variant='h4'
+              color='primary.main'
+              sx={{ fontWeight: 'bold' }}
+            >
+              {formatPrice(product.price)}
+            </Typography>
           )}
         </Box>
         <Typography variant='body2' color='success.main'>

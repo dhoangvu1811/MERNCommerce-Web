@@ -13,7 +13,7 @@ import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
 import ShareIcon from '@mui/icons-material/Share'
-import { formatPrice } from '../../utils/formatUtils'
+import { formatPrice, calculateDiscountedPrice } from '../../utils/formatUtils'
 import { useAuth } from '~/hooks/useAuth'
 import { useDispatch } from 'react-redux'
 import { addItem } from '~/redux/slices/orderSlice'
@@ -24,6 +24,14 @@ function BuyBox({ product }) {
   const { isAuthenticated } = useAuth()
   const dispatch = useDispatch()
   const [loginDialogOpen, setLoginDialogOpen] = useState(false)
+
+  // Tính giá sau giảm giá
+  const discountedPrice = calculateDiscountedPrice(
+    product.price,
+    product.discount || 0
+  )
+  // Giá hiển thị cho người dùng (giá sau giảm giá nếu có, không thì giá gốc)
+  const displayPrice = product.discount > 0 ? discountedPrice : product.price
 
   const handleQuantityChange = (change) => {
     setQuantity((prevQuantity) =>
@@ -47,7 +55,8 @@ function BuyBox({ product }) {
           ...product,
           // đảm bảo các field order slice cần
           countInStock: product.countInStock,
-          price: product.price,
+          price: product.price, // Giá gốc
+          discountedPrice: discountedPrice, // Giá sau giảm giá
           image: product.images?.[0] || product.image,
           discount: product.discount
         },
@@ -64,7 +73,8 @@ function BuyBox({ product }) {
         product: {
           ...product,
           countInStock: product.countInStock,
-          price: product.price,
+          price: product.price, // Giá gốc
+          discountedPrice: discountedPrice, // Giá sau giảm giá
           image: product.images?.[0] || product.image,
           discount: product.discount
         },
@@ -134,10 +144,28 @@ function BuyBox({ product }) {
             }}
           >
             <Typography variant='body2'>Đơn giá:</Typography>
-            <Typography variant='body2'>
-              {formatPrice(product.price)}
-            </Typography>
+            <Typography variant='body2'>{formatPrice(displayPrice)}</Typography>
           </Box>
+          {product.discount > 0 && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                mb: 1
+              }}
+            >
+              <Typography variant='body2' color='text.secondary'>
+                Giá gốc:
+              </Typography>
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{ textDecoration: 'line-through' }}
+              >
+                {formatPrice(product.price)}
+              </Typography>
+            </Box>
+          )}
           <Box
             sx={{
               display: 'flex',
@@ -160,7 +188,7 @@ function BuyBox({ product }) {
               Tổng tiền:
             </Typography>
             <Typography variant='body1' fontWeight='bold' color='primary'>
-              {formatPrice(product.price * quantity)}
+              {formatPrice(displayPrice * quantity)}
             </Typography>
           </Box>
         </Box>

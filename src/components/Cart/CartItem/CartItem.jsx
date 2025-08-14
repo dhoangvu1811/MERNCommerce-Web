@@ -18,7 +18,10 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping'
 import LocalOfferIcon from '@mui/icons-material/LocalOffer'
 import CartItemQuantity from './CartItemQuantity'
 import RemoveItemDialog from './RemoveItemDialog'
-import { formatPrice } from '../../../utils/formatUtils'
+import {
+  formatPrice,
+  calculateDiscountedPrice
+} from '../../../utils/formatUtils'
 import { verifyVoucher } from '../../../apis/voucherApi'
 
 /**
@@ -44,6 +47,15 @@ function CartItem({
   // Local shop voucher input
   const [voucherCode, setVoucherCode] = useState('')
   const [applying, setApplying] = useState(false)
+
+  // Tính giá sau giảm giá
+  const discountedPrice = calculateDiscountedPrice(
+    item.product.price,
+    item.product.discount || 0
+  )
+  // Giá hiển thị cho người dùng (giá sau giảm giá nếu có, không thì giá gốc)
+  const displayPrice =
+    item.product.discount > 0 ? discountedPrice : item.product.price
 
   const handleOpenRemoveDialog = () => {
     setRemoveDialogOpen(true)
@@ -178,15 +190,15 @@ function CartItem({
               {/* Price Column */}
               <Box sx={{ flex: 1 }}>
                 <Typography color='error' fontWeight='medium'>
-                  {formatPrice(item.product.price)}
+                  {formatPrice(displayPrice)}
                 </Typography>
-                {item.product.price !== item.product.originalPrice && (
+                {item.product.discount > 0 && (
                   <Typography
                     variant='body2'
                     color='text.secondary'
                     sx={{ textDecoration: 'line-through' }}
                   >
-                    {formatPrice(item.product.originalPrice)}
+                    {formatPrice(item.product.price)}
                   </Typography>
                 )}
               </Box>
@@ -211,7 +223,7 @@ function CartItem({
                 }}
               >
                 <Typography color='error' fontWeight='medium'>
-                  {formatPrice(item.product.price * quantity)}
+                  {formatPrice(displayPrice * quantity)}
                 </Typography>
 
                 <IconButton
@@ -238,7 +250,7 @@ function CartItem({
                 }}
               >
                 <Typography color='error' fontWeight='medium'>
-                  {formatPrice(item.product.price)}
+                  {formatPrice(displayPrice)}
                 </Typography>
 
                 <CartItemQuantity
