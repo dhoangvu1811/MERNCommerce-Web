@@ -1,11 +1,12 @@
 import { Button, Box } from '@mui/material'
 import {
   Visibility,
-  CheckCircle,
   LocalShipping,
+  CheckCircle,
   Cancel,
   Refresh
 } from '@mui/icons-material'
+import { ORDER_STATUS, isOrderCancellable } from '~/utils/orderConstants'
 
 function OrderActions({
   order,
@@ -30,8 +31,9 @@ function OrderActions({
         Xem chi tiết
       </Button>
 
-      {/* Theo dõi đơn hàng - khi có mã vận đơn */}
-      {order.trackingNumber && onTrackOrder && (
+      {/* Theo dõi đơn hàng - khi đã shipped và có mã vận đơn */}
+      {[ORDER_STATUS.SHIPPED, ORDER_STATUS.COMPLETED].includes(order.status) &&
+       order.trackingNumber && onTrackOrder && (
         <Button
           variant='contained'
           startIcon={<LocalShipping />}
@@ -42,8 +44,9 @@ function OrderActions({
         </Button>
       )}
 
-      {/* Đánh giá sản phẩm - khi đã giao hàng */}
-      {order.status === 'delivered' && onReviewProduct && (
+      {/* Đánh giá sản phẩm - khi đã hoàn thành và thanh toán */}
+      {order.status === ORDER_STATUS.COMPLETED &&
+       order.paymentStatus === 'paid' && onReviewProduct && (
         <Button
           variant='contained'
           color='success'
@@ -55,8 +58,8 @@ function OrderActions({
         </Button>
       )}
 
-      {/* Hủy đơn hàng - khi đang xử lý */}
-      {order.status === 'processing' && onCancelOrder && (
+      {/* Hủy đơn hàng - khi có thể hủy (pending/unpaid hoặc paid/paid) */}
+      {isOrderCancellable(order.status, order.paymentStatus) && onCancelOrder && (
         <Button
           variant='outlined'
           color='error'
@@ -69,7 +72,7 @@ function OrderActions({
       )}
 
       {/* Đặt lại - khi đã hủy hoặc đã giao */}
-      {['cancelled', 'delivered'].includes(order.status) && onReorder && (
+      {[ORDER_STATUS.CANCELLED, ORDER_STATUS.COMPLETED].includes(order.status) && onReorder && (
         <Button
           variant='contained'
           color='primary'

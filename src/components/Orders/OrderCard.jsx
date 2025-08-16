@@ -27,7 +27,10 @@ function OrderCard({
           }}
         >
           <OrderInfo orderId={order.id} orderDate={order.orderDate} />
-          <OrderStatusChip status={order.status} />
+          <OrderStatusChip
+            status={order.status}
+            paymentStatus={order.paymentStatus}
+          />
         </Box>
 
         <Divider sx={{ my: 2 }} />

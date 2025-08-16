@@ -84,6 +84,9 @@ const orderSlice = createSlice({
     clearCart: (state) => {
       state.items = []
       state.voucher = null
+      state.shippingAddress = null
+      state.paymentMethod = ''
+      state.shippingFee = 30000
     },
     setShippingAddress: (state, action) => {
       state.shippingAddress = action.payload || null

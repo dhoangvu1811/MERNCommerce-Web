@@ -5,13 +5,15 @@ import RecommendedProducts from '../components/Cart/RecommendedProducts'
 import CartHeader from '../components/Cart/CartHeader'
 import CartItem from '../components/Cart/CartItem/CartItem'
 import ShippingAddressCard from '../components/Cart/ShippingAddressCard'
+import ShippingMethodSelector from '../components/Cart/ShippingMethodSelector'
 import PaymentSummaryCard from '../components/Cart/PaymentSummaryCard'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   updateQuantity as updateCartQuantity,
   removeItem as removeCartItem,
   setShippingAddress as setCartShippingAddress,
-  selectCartSubtotal
+  applyVoucher,
+  setShippingFee
 } from '~/redux/slices/orderSlice'
 import { useAuth } from '~/hooks/useAuth'
 
@@ -65,6 +67,7 @@ function CartPage() {
   const navigate = useNavigate()
   const { isAuthenticated, currentUser } = useAuth()
   const items = useSelector((state) => state.order.items)
+  const shippingFee = useSelector((state) => state.order.shippingFee)
   const persistedAddress = useSelector((state) => state.order.shippingAddress)
 
   // State for selected items
@@ -89,6 +92,14 @@ function CartPage() {
     persistedAddress || userDefaultShippingAddress
   )
 
+  // State for selected shipping method
+  const [selectedShippingMethod, setSelectedShippingMethod] = useState({
+    value: 'standard',
+    label: 'Giao hàng tiêu chuẩn',
+    description: '3-5 ngày làm việc',
+    fee: 30000
+  })
+
   // Update shipping address when user info loads (if nothing persisted yet)
   useEffect(() => {
     if (!persistedAddress && userDefaultShippingAddress) {
@@ -105,6 +116,12 @@ function CartPage() {
   }, [items])
 
   const [appliedVoucher, setAppliedVoucher] = useState(null)
+
+  // Handle voucher application
+  const handleApplyVoucher = (voucherData) => {
+    setAppliedVoucher(voucherData)
+    dispatch(applyVoucher(voucherData))
+  }
   const [requireEditAddress, setRequireEditAddress] = useState(false)
   const [addressConfirmedAt, setAddressConfirmedAt] = useState(null)
 
@@ -214,6 +231,12 @@ function CartPage() {
     }
   }
 
+  // Handle shipping method change
+  const handleShippingMethodChange = (method) => {
+    setSelectedShippingMethod(method)
+    dispatch(setShippingFee(method.fee))
+  }
+
   return (
     <Box sx={{ py: 4, minHeight: '100vh' }}>
       <Container maxWidth='xl'>
@@ -257,7 +280,7 @@ function CartPage() {
                 onQuantityChange={handleQuantityChange}
                 onRemove={handleRemoveItem}
                 orderTotal={subtotal}
-                onApplyVoucher={setAppliedVoucher}
+                onApplyVoucher={handleApplyVoucher}
               />
             ))}
 
@@ -283,10 +306,16 @@ function CartPage() {
                 onEditHandled={() => setRequireEditAddress(false)}
               />
 
+              {/* Shipping Method */}
+              <ShippingMethodSelector
+                value={selectedShippingMethod.value}
+                onChange={handleShippingMethodChange}
+              />
+
               {/* Payment Summary */}
               <PaymentSummaryCard
                 subtotal={subtotal}
-                shippingFee={30000}
+                shippingFee={shippingFee}
                 discount={discount}
                 totalItems={totalItems}
                 onCheckout={handleCheckout}

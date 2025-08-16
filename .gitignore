@@ -15,6 +15,7 @@ dist-ssr
 # Editor directories and files
 .vscode/*
 .cursor/
+.windsurf/
 .github/instructions/
 !.vscode/extensions.json
 .idea

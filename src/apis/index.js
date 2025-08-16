@@ -2,4 +2,5 @@
 export * from './productApi'
 export * from './userApi'
 export * from './voucherApi'
+export * from './orderApi'
 export { default as axiosInstance } from './axiosConfig'

@@ -1,14 +1,8 @@
 import { Box, Typography } from '@mui/material'
 import { Receipt } from '@mui/icons-material'
+import { formatDate } from '~/utils/formatUtils'
 
 function OrderInfo({ orderId, orderDate, compact = false }) {
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: compact ? 'short' : 'long',
-      day: 'numeric'
-    })
-  }
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

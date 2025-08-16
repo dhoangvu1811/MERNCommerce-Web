@@ -24,47 +24,15 @@ import {
   CheckCircle
 } from '@mui/icons-material'
 import OrderStatusChip from './OrderStatusChip'
+import { ORDER_STATUS } from '~/utils/orderConstants'
+import { formatPrice, formatDate } from '~/utils/formatUtils'
+import { getOrderProgressSteps } from '~/utils/orderConstants'
 
 function OrderDetailsDialog({ open, order, onClose }) {
   if (!order) return null
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(price)
-  }
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
   const getOrderSteps = () => {
-    const steps = [
-      { label: 'Đơn hàng được tạo', completed: true },
-      { label: 'Xác nhận thanh toán', completed: true },
-      { label: 'Đang chuẩn bị hàng', completed: order.status !== 'cancelled' },
-      {
-        label: 'Đang giao hàng',
-        completed: ['shipping', 'delivered'].includes(order.status)
-      },
-      { label: 'Đã giao thành công', completed: order.status === 'delivered' }
-    ]
-
-    if (order.status === 'cancelled') {
-      return [
-        { label: 'Đơn hàng được tạo', completed: true },
-        { label: 'Đơn hàng bị hủy', completed: true, error: true }
-      ]
-    }
-
-    return steps
+    return getOrderProgressSteps(order.status, order.paymentStatus)
   }
 
   const steps = getOrderSteps()
@@ -99,7 +67,10 @@ function OrderDetailsDialog({ open, order, onClose }) {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <OrderStatusChip status={order.status} />
+            <OrderStatusChip
+              status={order.status}
+              paymentStatus={order.paymentStatus}
+            />
             <IconButton onClick={onClose} size='small'>
               <Close />
             </IconButton>
@@ -150,7 +121,7 @@ function OrderDetailsDialog({ open, order, onClose }) {
                 Mã đơn hàng: {order.id}
               </Typography>
               <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
-                Ngày đặt: {formatDate(order.orderDate)}
+                Ngày đặt: {formatDate(order.orderDate, { withTime: true })}
               </Typography>
               {order.trackingNumber && (
                 <Typography
@@ -163,7 +134,8 @@ function OrderDetailsDialog({ open, order, onClose }) {
               )}
               {order.estimatedDelivery && (
                 <Typography variant='body2' color='text.secondary'>
-                  Dự kiến giao: {formatDate(order.estimatedDelivery)}
+                  Dự kiến giao:{' '}
+                  {formatDate(order.estimatedDelivery, { withTime: true })}
                 </Typography>
               )}
             </Paper>
@@ -252,7 +224,7 @@ function OrderDetailsDialog({ open, order, onClose }) {
         </Paper>
 
         {/* Cancel Reason */}
-        {order.status === 'cancelled' && order.cancelReason && (
+        {order.status === ORDER_STATUS.CANCELLED && order.cancelReason && (
           <Paper
             sx={{
               p: 3,
