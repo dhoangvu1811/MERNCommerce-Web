@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Box,
   Container,
@@ -7,7 +7,8 @@ import {
   Tabs,
   Tab,
   Grid,
-  Paper
+  Paper,
+  CircularProgress
 } from '@mui/material'
 import {
   Receipt,
@@ -16,124 +17,74 @@ import {
   Cancel,
   Refresh
 } from '@mui/icons-material'
+import { toast } from 'react-toastify'
 import { OrderCard, OrderDetailsDialog } from '../components/Orders'
+import { getMyOrders, getOrderDetails, cancelOrder } from '~/apis/orderApi'
+import {
+  ORDER_STATUS,
+  getProcessingStatuses,
+  filterOrdersByCategory
+} from '~/utils/orderConstants'
 
 function MyOrders() {
   const [selectedTab, setSelectedTab] = useState(0)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  // Mock data đơn hàng
-  const mockOrders = [
-    {
-      id: 'ORD-2024-001',
-      orderDate: '2024-01-15',
-      status: 'delivered',
-      total: 2850000,
-      items: [
-        {
-          id: 1,
-          name: 'iPhone 15 Pro Max 256GB',
-          price: 2500000,
-          quantity: 1,
-          image: '/src/assets/products/productimg.png'
-        },
-        {
-          id: 2,
-          name: 'Ốp lưng iPhone 15 Pro Max',
-          price: 350000,
-          quantity: 1,
-          image: '/src/assets/products/productimg.png'
-        }
-      ],
-      shippingAddress: {
-        name: 'Nguyễn Văn A',
-        phone: '0901234567',
-        address: '123 Đường ABC, Phường XYZ, Quận 1, TP.HCM'
-      },
-      paymentMethod: 'Thẻ tín dụng',
-      trackingNumber: 'VN123456789',
-      estimatedDelivery: '2024-01-20'
-    },
-    {
-      id: 'ORD-2024-002',
-      orderDate: '2024-01-20',
-      status: 'shipping',
-      total: 1890000,
-      items: [
-        {
-          id: 3,
-          name: 'Samsung Galaxy S24 Ultra',
-          price: 1890000,
-          quantity: 1,
-          image: '/src/assets/products/productimg.png'
-        }
-      ],
-      shippingAddress: {
-        name: 'Nguyễn Văn A',
-        phone: '0901234567',
-        address: '123 Đường ABC, Phường XYZ, Quận 1, TP.HCM'
-      },
-      paymentMethod: 'COD',
-      trackingNumber: 'VN987654321',
-      estimatedDelivery: '2024-01-25'
-    },
-    {
-      id: 'ORD-2024-003',
-      orderDate: '2024-01-22',
-      status: 'processing',
-      total: 450000,
-      items: [
-        {
-          id: 4,
-          name: 'Tai nghe AirPods Pro 2',
-          price: 450000,
-          quantity: 1,
-          image: '/src/assets/products/productimg.png'
-        }
-      ],
-      shippingAddress: {
-        name: 'Nguyễn Văn A',
-        phone: '0901234567',
-        address: '123 Đường ABC, Phường XYZ, Quận 1, TP.HCM'
-      },
-      paymentMethod: 'Chuyển khoản',
-      trackingNumber: null,
-      estimatedDelivery: '2024-01-28'
-    },
-    {
-      id: 'ORD-2024-004',
-      orderDate: '2024-01-10',
-      status: 'cancelled',
-      total: 690000,
-      items: [
-        {
-          id: 5,
-          name: 'MacBook Air M2',
-          price: 690000,
-          quantity: 1,
-          image: '/src/assets/products/productimg.png'
-        }
-      ],
-      shippingAddress: {
-        name: 'Nguyễn Văn A',
-        phone: '0901234567',
-        address: '123 Đường ABC, Phường XYZ, Quận 1, TP.HCM'
-      },
-      paymentMethod: 'Thẻ tín dụng',
-      trackingNumber: null,
-      estimatedDelivery: null,
-      cancelReason: 'Khách hàng hủy đơn'
+  const mapOrder = (o) => ({
+    id: o._id || o.id,
+    orderDate: o.createdAt || o.orderDate,
+    status: o.status,
+    paymentStatus: o.paymentStatus,
+    // Use totals.payable as per API documentation
+    total: o.totals?.payable ?? 0,
+    items: (o.items || []).map((it) => ({
+      id: it.productId || it._id || it.id,
+      name: it.name,
+      // Use lineTotal as per API documentation for OrderItem
+      price: it.lineTotal ?? 0,
+      quantity: it.quantity,
+      image: it.image
+    })),
+    shippingAddress: o.shippingAddress,
+    paymentMethod: o.paymentMethod,
+    trackingNumber: o.trackingNumber,
+    estimatedDelivery: o.estimatedDelivery,
+    cancelReason: o.cancelReason
+  })
+
+  const load = useCallback(async () => {
+    try {
+      setLoading(true)
+      const res = await getMyOrders(1, 20)
+      const list = res?.data?.orders || []
+      setOrders(list.map(mapOrder))
+    } finally {
+      setLoading(false)
     }
-  ]
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue)
   }
 
-  const handleOrderClick = (order) => {
-    setSelectedOrder(order)
-    setDialogOpen(true)
+  const handleOrderClick = async (order) => {
+    try {
+      const res = await getOrderDetails(order.id)
+      const detail = res?.data || order
+      setSelectedOrder(mapOrder(detail))
+    } catch {
+      // Fallback to basic order data if details fetch fails
+      setSelectedOrder(order)
+    } finally {
+      setDialogOpen(true)
+    }
   }
 
   const handleCloseDialog = () => {
@@ -152,9 +103,14 @@ function MyOrders() {
     alert(`Đánh giá sản phẩm cho đơn hàng: ${order.id}`)
   }
 
-  const handleCancelOrder = (order) => {
-    // TODO: Implement cancel logic
-    alert(`Hủy đơn hàng: ${order.id}`)
+  const handleCancelOrder = async (order) => {
+    try {
+      await cancelOrder(order.id)
+      toast.success('Đơn hàng đã được hủy thành công')
+      await load()
+    } catch {
+      // Error handling is done by axios interceptor
+    }
   }
 
   const handleReorder = (order) => {
@@ -164,23 +120,32 @@ function MyOrders() {
 
   // Lọc đơn hàng theo tab
   const getFilteredOrders = () => {
-    let filtered = mockOrders
+    let filtered = orders
 
-    // Lọc theo tab
+    // Lọc theo tab - sử dụng constants từ orderConstants
     switch (selectedTab) {
       case 1:
-        filtered = filtered.filter((order) => order.status === 'processing')
+        filtered = filtered.filter((order) =>
+          getProcessingStatuses().includes(order.status)
+        )
         break
       case 2:
-        filtered = filtered.filter((order) => order.status === 'shipping')
+        filtered = filtered.filter(
+          (order) => order.status === ORDER_STATUS.SHIPPED
+        )
         break
       case 3:
-        filtered = filtered.filter((order) => order.status === 'delivered')
+        filtered = filtered.filter(
+          (order) => order.status === ORDER_STATUS.COMPLETED
+        )
         break
       case 4:
-        filtered = filtered.filter((order) => order.status === 'cancelled')
+        filtered = filtered.filter(
+          (order) => order.status === ORDER_STATUS.CANCELLED
+        )
         break
       default:
+        // Show all orders for default case
         break
     }
 
@@ -189,11 +154,12 @@ function MyOrders() {
 
   const getOrderStats = () => {
     return {
-      total: mockOrders.length,
-      processing: mockOrders.filter((o) => o.status === 'processing').length,
-      shipping: mockOrders.filter((o) => o.status === 'shipping').length,
-      delivered: mockOrders.filter((o) => o.status === 'delivered').length,
-      cancelled: mockOrders.filter((o) => o.status === 'cancelled').length
+      total: orders.length,
+      processing: filterOrdersByCategory(orders, 'processing').length,
+      completed: filterOrdersByCategory(orders, 'completed').length,
+      cancelled: filterOrdersByCategory(orders, 'cancelled').length,
+      shipped: orders.filter((order) => order.status === ORDER_STATUS.SHIPPED)
+        .length
     }
   }
 
@@ -241,7 +207,7 @@ function MyOrders() {
             <Paper sx={{ p: 2, textAlign: 'center' }}>
               <LocalShipping sx={{ fontSize: 32, color: 'info.main', mb: 1 }} />
               <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
-                {stats.shipping}
+                {stats.shipped}
               </Typography>
               <Typography variant='body2' color='text.secondary'>
                 Đang giao
@@ -254,7 +220,7 @@ function MyOrders() {
                 sx={{ fontSize: 32, color: 'success.main', mb: 1 }}
               />
               <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
-                {stats.delivered}
+                {stats.completed}
               </Typography>
               <Typography variant='body2' color='text.secondary'>
                 Đã giao
@@ -285,41 +251,52 @@ function MyOrders() {
           >
             <Tab label={`Tất cả (${stats.total})`} />
             <Tab label={`Đang xử lý (${stats.processing})`} />
-            <Tab label={`Đang giao (${stats.shipping})`} />
-            <Tab label={`Đã giao (${stats.delivered})`} />
+            <Tab label={`Đang giao (${stats.shipped})`} />
+            <Tab label={`Đã giao (${stats.completed})`} />
             <Tab label={`Đã hủy (${stats.cancelled})`} />
           </Tabs>
         </Paper>
 
+        {/* Loading State */}
+        {loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress />
+          </Box>
+        )}
+
         {/* Orders List */}
-        <Box sx={{ mb: 4 }}>
-          {filteredOrders.length === 0 ? (
-            <Paper sx={{ p: 6, textAlign: 'center' }}>
-              <Receipt sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-              <Typography variant='h6' color='text.secondary' sx={{ mb: 1 }}>
-                Không có đơn hàng nào
-              </Typography>
-              <Typography variant='body2' color='text.secondary'>
-                Bạn chưa có đơn hàng nào trong mục này
-              </Typography>
-            </Paper>
-          ) : (
-            <Grid container spacing={3}>
-              {filteredOrders.map((order) => (
-                <Grid item xs={12} key={order.id}>
-                  <OrderCard
-                    order={order}
-                    onViewDetails={() => handleOrderClick(order)}
-                    onTrackOrder={() => handleTrackOrder(order)}
-                    onReviewProduct={() => handleReviewProduct(order)}
-                    onCancelOrder={() => handleCancelOrder(order)}
-                    onReorder={() => handleReorder(order)}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          )}
-        </Box>
+        {!loading && (
+          <Box sx={{ mb: 4 }}>
+            {filteredOrders.length === 0 ? (
+              <Paper sx={{ p: 6, textAlign: 'center' }}>
+                <Receipt
+                  sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }}
+                />
+                <Typography variant='h6' color='text.secondary' sx={{ mb: 1 }}>
+                  Không có đơn hàng nào
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  Bạn chưa có đơn hàng nào trong mục này
+                </Typography>
+              </Paper>
+            ) : (
+              <Grid container spacing={3}>
+                {filteredOrders.map((order) => (
+                  <Grid item xs={12} key={order.id}>
+                    <OrderCard
+                      order={order}
+                      onViewDetails={() => handleOrderClick(order)}
+                      onTrackOrder={() => handleTrackOrder(order)}
+                      onReviewProduct={() => handleReviewProduct(order)}
+                      onCancelOrder={() => handleCancelOrder(order)}
+                      onReorder={() => handleReorder(order)}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </Box>
+        )}
 
         {/* Order Details Dialog */}
         {selectedOrder && (

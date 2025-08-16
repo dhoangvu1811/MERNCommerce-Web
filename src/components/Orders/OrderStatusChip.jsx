@@ -6,50 +6,47 @@ import {
   CheckCircle,
   Cancel
 } from '@mui/icons-material'
+import {
+  ORDER_STATUS,
+  ORDER_STATUS_CONFIG,
+  getOrderStatusConfig
+} from '~/utils/orderConstants'
 
-function OrderStatusChip({ status }) {
-  const getStatusConfig = (status) => {
-    switch (status) {
-      case 'processing':
-        return {
-          label: 'Đang xử lý',
-          color: 'warning',
-          icon: <Refresh fontSize='small' />
-        }
-      case 'shipping':
-        return {
-          label: 'Đang giao hàng',
-          color: 'info',
-          icon: <LocalShipping fontSize='small' />
-        }
-      case 'delivered':
-        return {
-          label: 'Đã giao hàng',
-          color: 'success',
-          icon: <CheckCircle fontSize='small' />
-        }
-      case 'cancelled':
-        return {
-          label: 'Đã hủy',
-          color: 'error',
-          icon: <Cancel fontSize='small' />
-        }
-      default:
-        return {
-          label: 'Không xác định',
-          color: 'default',
-          icon: null
-        }
-    }
+function OrderStatusChip({ status, paymentStatus }) {
+  // Use new combined status config if paymentStatus is provided
+  const config = paymentStatus
+    ? getOrderStatusConfig(status, paymentStatus)
+    : ORDER_STATUS_CONFIG[status] || {
+        label: status,
+        color: 'default'
+      }
+
+  // Add icons based on status
+  let icon = null
+  switch (status) {
+    case ORDER_STATUS.PENDING:
+    case ORDER_STATUS.PROCESSING:
+      icon = <Refresh fontSize='small' />
+      break
+    case ORDER_STATUS.PAID:
+    case ORDER_STATUS.COMPLETED:
+      icon = <CheckCircle fontSize='small' />
+      break
+    case ORDER_STATUS.SHIPPED:
+      icon = <LocalShipping fontSize='small' />
+      break
+    case ORDER_STATUS.CANCELLED:
+      icon = <Cancel fontSize='small' />
+      break
+    default:
+      icon = null
   }
-
-  const config = getStatusConfig(status)
 
   return (
     <Chip
       label={config.label}
       color={config.color}
-      icon={config.icon}
+      icon={icon}
       variant='filled'
       size='small'
       sx={{ fontWeight: 'medium' }}

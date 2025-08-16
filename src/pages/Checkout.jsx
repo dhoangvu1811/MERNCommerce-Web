@@ -9,7 +9,10 @@ import {
   Stack
 } from '@mui/material'
 import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { setPaymentMethod } from '~/redux/slices/orderSlice'
+import { clearCart } from '~/redux/slices/orderSlice'
+import { createOrder } from '~/apis/orderApi'
 import ShippingAddressCard from '../components/Cart/ShippingAddressCard'
 import PaymentSummaryCard from '../components/Cart/PaymentSummaryCard'
 import PaymentMethodSelector from '../components/Cart/PaymentMethodSelector'
@@ -17,10 +20,12 @@ import { formatPrice } from '../utils/formatUtils'
 
 function Checkout() {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const items = useSelector((state) => state.order.items)
   const shippingAddress = useSelector((state) => state.order.shippingAddress)
   const shippingFee = useSelector((state) => state.order.shippingFee)
   const paymentMethod = useSelector((state) => state.order.paymentMethod)
+  const voucher = useSelector((state) => state.order.voucher)
 
   const subtotal = useMemo(
     () =>
@@ -32,6 +37,34 @@ function Checkout() {
   )
 
   const canPlaceOrder = (items?.length ?? 0) > 0 && Boolean(paymentMethod)
+
+  const handleCheckout = async () => {
+    const payload = {
+      items: (items || []).map((it) => ({
+        productId: it.productId,
+        quantity: Number(it.quantity) || 1
+      })),
+      shippingAddress: shippingAddress || {},
+      shippingFee: Number(shippingFee) || 0,
+      paymentMethod: paymentMethod || undefined
+    }
+    const code =
+      typeof voucher === 'string'
+        ? voucher
+        : voucher?.code || voucher?.voucherCode || undefined
+    if (code) payload.voucherCode = code
+
+    try {
+      const res = await createOrder(payload)
+      const created = res?.data
+      if (created?.id || created?._id) {
+        dispatch(clearCart())
+        navigate('/orders')
+      }
+    } catch {
+      // axios interceptor will toast errors
+    }
+  }
 
   return (
     <Box sx={{ py: 4, minHeight: '100vh' }}>
@@ -120,9 +153,7 @@ function Checkout() {
                 (n, it) => n + Number(it.quantity),
                 0
               )}
-              onCheckout={() => {
-                /* TODO: place order */
-              }}
+              onCheckout={handleCheckout}
               ctaLabel='Place Order'
               disabled={!canPlaceOrder}
             />

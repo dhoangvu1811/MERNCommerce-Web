@@ -1,14 +1,8 @@
 import { Box, Typography } from '@mui/material'
 import { LocalShipping } from '@mui/icons-material'
+import { formatDate } from '~/utils/formatUtils'
 
 function OrderTrackingInfo({ trackingNumber, estimatedDelivery }) {
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
 
   if (!trackingNumber && !estimatedDelivery) {
     return null
