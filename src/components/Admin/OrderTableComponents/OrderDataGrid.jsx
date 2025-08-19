@@ -3,26 +3,58 @@ import { Paper, Chip, IconButton, Box } from '@mui/material'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop'
-import { formatPrice } from '../../../utils/formatUtils'
+import { formatPrice, formatDate } from '../../../utils/formatUtils'
+import { getOrderStatusConfig } from '../../../utils/orderConstants'
 
-const OrderDataGrid = ({ filteredOrders, onViewDetails, onPrint }) => {
+const OrderDataGrid = ({
+  filteredOrders,
+  onViewDetails,
+  onPrint,
+  loading,
+  pagination,
+  onPageChange,
+  onPageSizeChange
+}) => {
+  // Transform API data to match DataGrid format
+  const transformedOrders = filteredOrders.map((order) => ({
+    id: order._id,
+    orderNumber: order._id?.slice(-8) || 'N/A',
+    createdAt: formatDate(order.createdAt, { withTime: true }),
+    userName: order.shippingAddress?.name || 'N/A',
+    userEmail: 'N/A', // Email không có trong response
+    phone: order.shippingAddress?.phone || 'N/A',
+    address: order.shippingAddress?.fullAddress || 'N/A',
+    status: order.status,
+    paymentStatus: order.paymentStatus,
+    paymentMethod: order.paymentMethod || 'N/A',
+    totalPrice: order.totals?.payable || 0,
+    itemCount: order.items?.length || 0,
+    ...order
+  }))
+
   // Column definitions for DataGrid
   const columns = [
     {
-      field: 'id',
+      field: 'orderNumber',
       headerName: 'Mã đơn',
-      width: 100
+      width: 120
     },
     {
-      field: 'orderDate',
+      field: 'createdAt',
       headerName: 'Ngày đặt',
-      width: 120
+      width: 160
     },
     {
       field: 'userName',
       headerName: 'Tên khách hàng',
       flex: 1,
       minWidth: 180
+    },
+    {
+      field: 'itemCount',
+      headerName: 'Số sản phẩm',
+      width: 120,
+      align: 'center'
     },
     {
       field: 'phone',
@@ -36,33 +68,36 @@ const OrderDataGrid = ({ filteredOrders, onViewDetails, onPrint }) => {
       minWidth: 200
     },
     {
-      field: 'isPaid',
-      headerName: 'Thanh toán',
+      field: 'status',
+      headerName: 'Trạng thái',
       width: 150,
-      renderCell: (params) => (
-        <Chip
-          label={params.value ? 'Đã thanh toán' : 'Chưa thanh toán'}
-          color={params.value ? 'success' : 'warning'}
-          size='small'
-        />
-      )
-    },
-    {
-      field: 'isShipped',
-      headerName: 'Vận chuyển',
-      width: 150,
-      renderCell: (params) => (
-        <Chip
-          label={params.value ? 'Đã giao hàng' : 'Đang vận chuyển'}
-          color={params.value ? 'success' : 'info'}
-          size='small'
-        />
-      )
+      renderCell: (params) => {
+        const statusConfig = getOrderStatusConfig(
+          params.row.status,
+          params.row.paymentStatus
+        )
+        return (
+          <Chip
+            label={statusConfig.label}
+            color={statusConfig.color}
+            size='small'
+          />
+        )
+      }
     },
     {
       field: 'paymentMethod',
-      headerName: 'Phương thức thanh toán',
-      width: 200
+      headerName: 'Thanh toán',
+      width: 120,
+      renderCell: (params) => {
+        const methodLabels = {
+          cod: 'COD',
+          ewallet: 'Ví điện tử',
+          banking: 'Chuyển khoản',
+          credit_card: 'Thẻ tín dụng'
+        }
+        return methodLabels[params.value] || params.value
+      }
     },
     {
       field: 'totalPrice',
@@ -101,14 +136,28 @@ const OrderDataGrid = ({ filteredOrders, onViewDetails, onPrint }) => {
   return (
     <Paper sx={{ height: 'calc(100vh - 230px)', width: '100%' }}>
       <DataGrid
-        rows={filteredOrders}
+        rows={transformedOrders}
         columns={columns}
+        loading={loading}
         initialState={{
           pagination: {
-            paginationModel: { pageSize: 10 }
+            paginationModel: {
+              pageSize: pagination?.itemsPerPage || 10,
+              page: (pagination?.page || 1) - 1
+            }
           }
         }}
-        pageSizeOptions={[5, 10, 25]}
+        pageSizeOptions={[5, 10, 25, 50]}
+        paginationMode='server'
+        rowCount={pagination?.totalItems || 0}
+        onPaginationModelChange={(model) => {
+          if (onPageChange && model.page !== (pagination?.page || 1) - 1) {
+            onPageChange(model.page + 1)
+          }
+          if (onPageSizeChange && model.pageSize !== pagination?.itemsPerPage) {
+            onPageSizeChange(model.pageSize)
+          }
+        }}
         slots={{ toolbar: GridToolbar }}
         slotProps={{
           toolbar: {
