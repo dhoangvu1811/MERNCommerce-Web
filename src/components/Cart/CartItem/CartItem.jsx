@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { toast } from 'react-toastify'
 import {
   Box,
   Typography,
@@ -36,7 +37,8 @@ function CartItem({
   onRemove,
   // New: order total and a callback to apply voucher at cart-level
   orderTotal,
-  onApplyVoucher
+  onApplyVoucher,
+  appliedVoucher
 }) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -83,6 +85,7 @@ function CartItem({
     try {
       const res = await verifyVoucher({ code: trimmed, orderTotal: total })
       const { voucher, discount, payable } = res?.data || {}
+      toast.success('Áp dụng voucher thành công!')
       onApplyVoucher?.({
         code: trimmed,
         voucher,
@@ -331,7 +334,10 @@ function CartItem({
                   size='small'
                   sx={{ minWidth: 'unset' }}
                   disabled={
-                    applying || !voucherCode.trim() || !Number(orderTotal)
+                    applying ||
+                    !voucherCode.trim() ||
+                    !Number(orderTotal) ||
+                    !!appliedVoucher
                   }
                   onClick={handleApplyVoucher}
                 >

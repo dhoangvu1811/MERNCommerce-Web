@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import {
   Box,
   Container,
@@ -9,9 +9,9 @@ import {
   Stack
 } from '@mui/material'
 import { useSelector, useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
-import { setPaymentMethod } from '~/redux/slices/orderSlice'
-import { clearCart } from '~/redux/slices/orderSlice'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { setPaymentMethod, removeItems } from '~/redux/slices/orderSlice'
 import { createOrder } from '~/apis/orderApi'
 import ShippingAddressCard from '../components/Cart/ShippingAddressCard'
 import PaymentSummaryCard from '../components/Cart/PaymentSummaryCard'
@@ -21,7 +21,17 @@ import { formatPrice } from '../utils/formatUtils'
 function Checkout() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const items = useSelector((state) => state.order.items)
+  const location = useLocation()
+
+  // Get items from navigation state passed from CartPage
+  const items = location.state?.items
+
+  // Redirect to cart if no items are passed or user navigates directly
+  useEffect(() => {
+    if (!items || items.length === 0) {
+      navigate('/cart')
+    }
+  }, [items, navigate])
   const shippingAddress = useSelector((state) => state.order.shippingAddress)
   const shippingFee = useSelector((state) => state.order.shippingFee)
   const paymentMethod = useSelector((state) => state.order.paymentMethod)
@@ -30,11 +40,14 @@ function Checkout() {
   const subtotal = useMemo(
     () =>
       (items || []).reduce(
-        (sum, it) => sum + Number(it.price) * Number(it.quantity),
+        (sum, it) =>
+          sum + Number(it.discountedPrice || it.price) * Number(it.quantity),
         0
       ),
     [items]
   )
+
+  const discount = voucher?.discount || 0
 
   const canPlaceOrder = (items?.length ?? 0) > 0 && Boolean(paymentMethod)
 
@@ -58,7 +71,10 @@ function Checkout() {
       const res = await createOrder(payload)
       const created = res?.data
       if (created?.id || created?._id) {
-        dispatch(clearCart())
+        toast.success('Đặt hàng thành công!')
+        // Remove only the purchased items from the cart
+        const purchasedItemIds = items.map((it) => it.productId)
+        dispatch(removeItems(purchasedItemIds))
         navigate('/orders')
       }
     } catch {
@@ -148,7 +164,7 @@ function Checkout() {
             <PaymentSummaryCard
               subtotal={subtotal}
               shippingFee={shippingFee}
-              discount={0}
+              discount={discount}
               totalItems={(items || []).reduce(
                 (n, it) => n + Number(it.quantity),
                 0

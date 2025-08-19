@@ -73,6 +73,10 @@ const orderSlice = createSlice({
       const productId = action.payload
       state.items = state.items.filter((it) => it.productId !== productId)
     },
+    removeItems: (state, action) => {
+      const idsToRemove = action.payload || []
+      state.items = state.items.filter((it) => !idsToRemove.includes(it.productId))
+    },
     updateQuantity: (state, action) => {
       const { productId, quantity } = action.payload || {}
       const item = state.items.find((it) => it.productId === productId)
@@ -111,6 +115,7 @@ const orderSlice = createSlice({
 export const {
   addItem,
   removeItem,
+  removeItems,
   updateQuantity,
   clearCart,
   setShippingAddress,

@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { Box, Container, Grid, Typography } from '@mui/material'
 import RecommendedProducts from '../components/Cart/RecommendedProducts'
 import CartHeader from '../components/Cart/CartHeader'
@@ -181,6 +182,7 @@ function CartPage() {
   // Handle item removal
   const handleRemoveItem = (productId) => {
     dispatch(removeCartItem(productId))
+    toast.success('Đã xóa sản phẩm khỏi giỏ hàng.')
     setSelectedItems((prev) => {
       const newSelectedItems = { ...prev }
       delete newSelectedItems[productId]
@@ -194,6 +196,16 @@ function CartPage() {
       // Yêu cầu đăng nhập trước khi checkout (UI: đã có logic mở dialog ở BuyBox)
       return
     }
+
+    const itemsToCheckout = items.filter(
+      (item) => selectedItems[item.productId]
+    )
+
+    if (itemsToCheckout.length === 0) {
+      toast.warn('Vui lòng chọn ít nhất một sản phẩm để thanh toán.')
+      return
+    }
+
     // Bắt buộc người dùng cập nhật/ xác nhận địa chỉ giao hàng trước khi checkout
     const requiredFields = ['name', 'phone', 'address']
     const hasValidAddress = requiredFields.every(
@@ -209,7 +221,7 @@ function CartPage() {
       setRequireEditAddress(true)
       return
     }
-    navigate('/checkout')
+    navigate('/checkout', { state: { items: itemsToCheckout } })
   }
 
   // Handle shipping address change
@@ -227,6 +239,7 @@ function CartPage() {
         setShippingAddress(newAddress)
       }
       dispatch(setCartShippingAddress(newAddress))
+      toast.success('Đã cập nhật địa chỉ giao hàng.')
       setAddressConfirmedAt(Date.now())
     }
   }
@@ -281,6 +294,7 @@ function CartPage() {
                 onRemove={handleRemoveItem}
                 orderTotal={subtotal}
                 onApplyVoucher={handleApplyVoucher}
+                appliedVoucher={appliedVoucher}
               />
             ))}
 
