@@ -157,7 +157,7 @@ function CategoryPage() {
               title=''
               type={categoryType}
               sort={getSortParam(sortBy)}
-              limit={20}
+              itemsPerPage={20}
               onProductCountChange={handleProductCountChange}
             />
           </Grid>

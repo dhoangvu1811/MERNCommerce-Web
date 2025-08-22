@@ -19,7 +19,10 @@ const ProductDataGrid = ({
   onEdit,
   onDelete,
   onBulkDelete,
-  loading = false
+  loading = false,
+  pagination,
+  onPageChange,
+  onPageSizeChange
 }) => {
   const [selectedRows, setSelectedRows] = useState([])
 
@@ -225,10 +228,21 @@ const ProductDataGrid = ({
           }
         }}
         rowSelectionModel={{ type: 'include', ids: new Set(selectedRows) }}
+        paginationModel={{
+          page: pagination ? pagination.page - 1 : 0,
+          pageSize: pagination ? pagination.itemsPerPage : 10
+        }}
+        onPaginationModelChange={(model) => {
+          if (onPageChange && model.page !== (pagination?.page || 1) - 1) {
+            onPageChange(model.page + 1)
+          }
+          if (onPageSizeChange && model.pageSize !== pagination?.itemsPerPage) {
+            onPageSizeChange(model.pageSize)
+          }
+        }}
+        rowCount={pagination ? pagination.totalProducts : products.length}
+        paginationMode={pagination ? 'server' : 'client'}
         initialState={{
-          pagination: {
-            paginationModel: { pageSize: 10 }
-          },
           sorting: {
             sortModel: [{ field: 'name', sort: 'asc' }]
           },

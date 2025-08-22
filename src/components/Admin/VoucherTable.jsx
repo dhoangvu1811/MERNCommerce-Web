@@ -25,17 +25,39 @@ const VoucherTable = () => {
   const [addDrawerOpen, setAddDrawerOpen] = useState(false)
   const [editingVoucher, setEditingVoucher] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [pagination, setPagination] = useState({
+    page: 1,
+    itemsPerPage: 10,
+    totalVouchers: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPrevPage: false
+  })
   const searchTimer = useRef(null)
 
   // Fetch vouchers from API
   const fetchVouchers = async (query = {}) => {
     setLoading(true)
     try {
-      // Tạm dùng page 1, itemsPerPage lớn để lấy đủ dữ liệu cho demo
-      const res = await getVouchersAll({ page: 1, itemsPerPage: 100, ...query })
+      const params = {
+        page: pagination.page,
+        itemsPerPage: pagination.itemsPerPage,
+        ...query
+      }
+      const res = await getVouchersAll(params)
       // response chuẩn: { code, message, data: { vouchers, pagination } }
       const list = res?.data?.vouchers || []
+      const paginationData = res?.data?.pagination || {}
+
       setVouchers(list)
+      setPagination({
+        page: parseInt(paginationData.page) || 1,
+        itemsPerPage: parseInt(paginationData.itemsPerPage) || 10,
+        totalVouchers: paginationData.totalVouchers || 0,
+        totalPages: paginationData.totalPages || 0,
+        hasNextPage: paginationData.hasNextPage || false,
+        hasPrevPage: paginationData.hasPrevPage || false
+      })
     } catch {
       // fallback giữ nguyên local state (mock)
     } finally {
@@ -52,7 +74,8 @@ const VoucherTable = () => {
     if (searchTimer.current) clearTimeout(searchTimer.current)
     searchTimer.current = setTimeout(() => {
       const q = searchTerm.trim()
-      fetchVouchers(q ? { search: q } : {})
+      setPagination((prev) => ({ ...prev, page: 1 })) // Reset to page 1 on search
+      fetchVouchers(q ? { search: q, page: 1 } : { page: 1 })
     }, 400)
     return () => {
       if (searchTimer.current) clearTimeout(searchTimer.current)
@@ -181,6 +204,29 @@ const VoucherTable = () => {
     }
   }
 
+  // Handle page change
+  const handlePageChange = async (newPage) => {
+    setPagination((prev) => ({ ...prev, page: newPage }))
+    await fetchVouchers({
+      page: newPage,
+      search: searchTerm.trim() || undefined
+    })
+  }
+
+  // Handle page size change
+  const handlePageSizeChange = async (newPageSize) => {
+    setPagination((prev) => ({
+      ...prev,
+      itemsPerPage: newPageSize,
+      page: 1
+    }))
+    await fetchVouchers({
+      page: 1,
+      itemsPerPage: newPageSize,
+      search: searchTerm.trim() || undefined
+    })
+  }
+
   return (
     <Box sx={{ width: '100%', height: '100%' }}>
       <Box
@@ -205,6 +251,9 @@ const VoucherTable = () => {
         onBulkDelete={handleBulkDelete}
         onToggleActive={handleToggleActive}
         loading={loading}
+        pagination={pagination}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
       />
 
       <DeleteVoucherDialog

@@ -140,6 +140,9 @@ const ProductTable = () => {
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
         onBulkDelete={handleBulkDelete}
+        pagination={pagination}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handleItemsPerPageChange}
       />
 
       {/* Delete Confirmation Dialog */}

@@ -20,6 +20,7 @@ const UserDataGrid = ({
   onBulkDelete,
   pagination,
   onPageChange,
+  onPageSizeChange,
   loading = false
 }) => {
   const [selectedRows, setSelectedRows] = useState([])
@@ -138,6 +139,9 @@ const UserDataGrid = ({
     if (onPageChange) {
       onPageChange(model.page + 1) // DataGrid uses 0-based, we use 1-based
     }
+    if (onPageSizeChange) {
+      onPageSizeChange(model.pageSize)
+    }
   }
 
   return (
@@ -185,10 +189,10 @@ const UserDataGrid = ({
         rowSelectionModel={{ type: 'include', ids: new Set(selectedRows) }}
         paginationModel={{
           page: pagination ? pagination.page - 1 : 0, // Convert to 0-based
-          pageSize: pagination ? pagination.limit : 10
+          pageSize: pagination ? pagination.itemsPerPage : 10
         }}
         onPaginationModelChange={handlePaginationModelChange}
-        rowCount={pagination ? pagination.total : users.length}
+        rowCount={pagination ? pagination?.totalUsers : users.length}
         paginationMode='server'
         pageSizeOptions={[5, 10, 25]}
         slots={{ toolbar: GridToolbar }}

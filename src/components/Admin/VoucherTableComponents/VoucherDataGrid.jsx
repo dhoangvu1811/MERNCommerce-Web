@@ -21,7 +21,10 @@ const VoucherDataGrid = ({
   onDelete,
   onBulkDelete,
   onToggleActive,
-  loading = false
+  loading = false,
+  pagination,
+  onPageChange,
+  onPageSizeChange
 }) => {
   const [selectedRows, setSelectedRows] = useState([])
 
@@ -220,8 +223,21 @@ const VoucherDataGrid = ({
           }
         }}
         rowSelectionModel={{ type: 'include', ids: new Set(selectedRows) }}
+        paginationModel={{
+          page: pagination ? pagination.page - 1 : 0,
+          pageSize: pagination ? pagination.itemsPerPage : 10
+        }}
+        onPaginationModelChange={(model) => {
+          if (onPageChange && model.page !== (pagination?.page || 1) - 1) {
+            onPageChange(model.page + 1)
+          }
+          if (onPageSizeChange && model.pageSize !== pagination?.itemsPerPage) {
+            onPageSizeChange(model.pageSize)
+          }
+        }}
+        rowCount={pagination ? pagination.totalVouchers : vouchers.length}
+        paginationMode={pagination ? 'server' : 'client'}
         initialState={{
-          pagination: { paginationModel: { pageSize: 10 } },
           sorting: { sortModel: [{ field: 'code', sort: 'asc' }] }
         }}
         pageSizeOptions={[5, 10, 25]}

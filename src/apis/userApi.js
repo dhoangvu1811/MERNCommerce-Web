@@ -85,7 +85,7 @@ export const userApi = {
     const queryString = new URLSearchParams()
 
     if (params.page) queryString.append('page', params.page)
-    if (params.limit) queryString.append('limit', params.limit)
+    if (params.itemsPerPage) queryString.append('itemsPerPage', params.itemsPerPage)
     if (params.search) queryString.append('search', params.search)
     if (params.role) queryString.append('role', params.role)
     if (params.status) queryString.append('status', params.status)

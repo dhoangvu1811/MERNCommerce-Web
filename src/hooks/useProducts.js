@@ -23,7 +23,7 @@ export const useProducts = () => {
 
     const response = await getProducts({
       page: pagination.page,
-      limit: pagination.itemsPerPage,
+      itemsPerPage: pagination.itemsPerPage,
       ...params
     })
 
@@ -93,7 +93,7 @@ export const useProducts = () => {
     }))
     await fetchProducts({
       page: 1,
-      limit: newItemsPerPage
+      itemsPerPage: newItemsPerPage
     })
   }
 

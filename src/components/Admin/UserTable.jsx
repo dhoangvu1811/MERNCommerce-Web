@@ -44,7 +44,7 @@ const UserTable = () => {
         await dispatch(
           getAllUsers({
             page: currentPage,
-            limit: pagination.limit,
+            itemsPerPage: pagination.itemsPerPage,
             search: searchTerm.trim() || undefined
           })
         ).unwrap()
@@ -62,7 +62,7 @@ const UserTable = () => {
     ) // Delay 500ms cho search, immediate cho initial load
 
     return () => clearTimeout(timeoutId)
-  }, [dispatch, currentPage, pagination.limit, searchTerm])
+  }, [dispatch, currentPage, pagination.itemsPerPage, searchTerm])
 
   // Cleanup khi component unmount
   useEffect(() => {
@@ -113,7 +113,7 @@ const UserTable = () => {
       await dispatch(
         getAllUsers({
           page: currentPage,
-          limit: pagination.limit,
+          itemsPerPage: pagination.itemsPerPage,
           search: searchTerm.trim() || undefined
         })
       ).unwrap()
@@ -145,7 +145,7 @@ const UserTable = () => {
       await dispatch(
         getAllUsers({
           page: currentPage,
-          limit: pagination.limit,
+          itemsPerPage: pagination.itemsPerPage,
           search: searchTerm.trim() || undefined
         })
       ).unwrap()
@@ -175,7 +175,7 @@ const UserTable = () => {
       await dispatch(
         getAllUsers({
           page: currentPage,
-          limit: pagination.limit,
+          itemsPerPage: pagination.itemsPerPage,
           search: searchTerm.trim() || undefined
         })
       ).unwrap()
@@ -200,7 +200,7 @@ const UserTable = () => {
       await dispatch(
         getAllUsers({
           page: currentPage,
-          limit: pagination.limit,
+          itemsPerPage: pagination.itemsPerPage,
           search: searchTerm.trim() || undefined
         })
       ).unwrap()
@@ -212,6 +212,22 @@ const UserTable = () => {
   // Handle page change
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage)
+  }
+
+  const handlePageSizeChange = async (newPageSize) => {
+    setCurrentPage(1) // Reset to first page when changing page size
+    setIsLoading(true)
+    try {
+      await dispatch(
+        getAllUsers({
+          page: 1,
+          itemsPerPage: newPageSize,
+          search: searchTerm.trim() || undefined
+        })
+      ).unwrap()
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -248,6 +264,7 @@ const UserTable = () => {
         onBulkDelete={handleBulkDelete}
         pagination={pagination}
         onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
         loading={isLoading}
       />
 

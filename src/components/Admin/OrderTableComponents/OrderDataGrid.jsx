@@ -139,17 +139,13 @@ const OrderDataGrid = ({
         rows={transformedOrders}
         columns={columns}
         loading={loading}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: pagination?.itemsPerPage || 10,
-              page: (pagination?.page || 1) - 1
-            }
-          }
+        paginationModel={{
+          pageSize: pagination?.itemsPerPage || 10,
+          page: (pagination?.page || 1) - 1
         }}
-        pageSizeOptions={[5, 10, 25, 50]}
+        pageSizeOptions={[5, 10, 25]}
         paginationMode='server'
-        rowCount={pagination?.totalItems || 0}
+        rowCount={pagination?.totalOrders || 0}
         onPaginationModelChange={(model) => {
           if (onPageChange && model.page !== (pagination?.page || 1) - 1) {
             onPageChange(model.page + 1)
@@ -167,6 +163,7 @@ const OrderDataGrid = ({
         }}
         disableRowSelectionOnClick
         checkboxSelection
+        autoHeight
       />
     </Paper>
   )
