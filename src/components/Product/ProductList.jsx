@@ -12,7 +12,7 @@ import { getProducts } from '../../apis/productApi'
 
 function ProductList({
   title = 'Sản phẩm nổi bật',
-  limit = 8,
+  itemsPerPage = 8,
   type = null,
   sort = null,
   onProductCountChange = null
@@ -28,7 +28,7 @@ function ProductList({
         setError(null)
 
         const params = {
-          limit,
+          itemsPerPage,
           page: 1
         }
 
@@ -55,7 +55,7 @@ function ProductList({
     }
 
     fetchProducts()
-  }, [limit, type, sort, onProductCountChange])
+  }, [itemsPerPage, type, sort, onProductCountChange])
 
   if (loading) {
     return (

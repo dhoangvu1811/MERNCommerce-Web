@@ -7,7 +7,7 @@ const useOrder = () => {
   const [pagination, setPagination] = useState({
     page: 1,
     itemsPerPage: 10,
-    totalItems: 0,
+    totalOrders: 0,
     totalPages: 0
   })
   const [filters, setFilters] = useState({
@@ -38,7 +38,7 @@ const useOrder = () => {
         setPagination({
           page: response.data.pagination?.page || 1,
           itemsPerPage: response.data.pagination?.itemsPerPage || 10,
-          totalItems: response.data.pagination?.totalOrders || 0,
+          totalOrders: response.data.pagination?.totalOrders || 0,
           totalPages: response.data.pagination?.totalPages || 0
         })
       }
