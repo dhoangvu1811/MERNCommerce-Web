@@ -62,7 +62,7 @@ function OrderDetailsDialog({ open, order, onClose }) {
                 Chi tiết đơn hàng
               </Typography>
               <Typography variant='body2' color='text.secondary'>
-                {order.id}
+                {order.orderCode}
               </Typography>
             </Box>
           </Box>
@@ -118,7 +118,7 @@ function OrderDetailsDialog({ open, order, onClose }) {
                 </Typography>
               </Box>
               <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
-                Mã đơn hàng: {order.id}
+                Mã đơn hàng: {order.orderCode}
               </Typography>
               <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
                 Ngày đặt: {formatDate(order.orderDate, { withTime: true })}
@@ -245,7 +245,7 @@ function OrderDetailsDialog({ open, order, onClose }) {
         <Button onClick={onClose} variant='outlined'>
           Đóng
         </Button>
-        {order.status === 'delivered' && (
+        {order.status === ORDER_STATUS.DELIVERED && (
           <Button variant='contained' startIcon={<CheckCircle />}>
             Đánh giá sản phẩm
           </Button>

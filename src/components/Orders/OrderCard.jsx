@@ -26,7 +26,7 @@ function OrderCard({
             mb: 2
           }}
         >
-          <OrderInfo orderId={order.id} orderDate={order.orderDate} />
+          <OrderInfo orderId={order.orderCode} orderDate={order.orderDate} />
           <OrderStatusChip
             status={order.status}
             paymentStatus={order.paymentStatus}
