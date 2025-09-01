@@ -25,17 +25,21 @@ function OrderStatusChip({ status, paymentStatus }) {
   let icon = null
   switch (status) {
     case ORDER_STATUS.PENDING:
+    case ORDER_STATUS.CONFIRMED:
     case ORDER_STATUS.PROCESSING:
+    case ORDER_STATUS.PACKED:
       icon = <Refresh fontSize='small' />
-      break
-    case ORDER_STATUS.PAID:
-    case ORDER_STATUS.COMPLETED:
-      icon = <CheckCircle fontSize='small' />
       break
     case ORDER_STATUS.SHIPPED:
       icon = <LocalShipping fontSize='small' />
       break
+    case ORDER_STATUS.DELIVERED:
+    case ORDER_STATUS.COMPLETED:
+    case ORDER_STATUS.REFUNDED:
+      icon = <CheckCircle fontSize='small' />
+      break
     case ORDER_STATUS.CANCELLED:
+    case ORDER_STATUS.RETURNED:
       icon = <Cancel fontSize='small' />
       break
     default:

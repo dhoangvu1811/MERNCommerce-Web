@@ -35,6 +35,7 @@ function MyOrders() {
 
   const mapOrder = (o) => ({
     id: o._id || o.id,
+    orderCode: o.orderCode,
     orderDate: o.createdAt || o.orderDate,
     status: o.status,
     paymentStatus: o.paymentStatus,
@@ -281,18 +282,20 @@ function MyOrders() {
               </Paper>
             ) : (
               <Grid container spacing={3}>
-                {filteredOrders.map((order) => (
-                  <Grid item xs={12} key={order.id}>
-                    <OrderCard
-                      order={order}
-                      onViewDetails={() => handleOrderClick(order)}
-                      onTrackOrder={() => handleTrackOrder(order)}
-                      onReviewProduct={() => handleReviewProduct(order)}
-                      onCancelOrder={() => handleCancelOrder(order)}
-                      onReorder={() => handleReorder(order)}
-                    />
-                  </Grid>
-                ))}
+                {filteredOrders.map((order) => {
+                  return (
+                    <Grid item xs={12} key={order.id}>
+                      <OrderCard
+                        order={order}
+                        onViewDetails={() => handleOrderClick(order)}
+                        onTrackOrder={() => handleTrackOrder(order)}
+                        onReviewProduct={() => handleReviewProduct(order)}
+                        onCancelOrder={() => handleCancelOrder(order)}
+                        onReorder={() => handleReorder(order)}
+                      />
+                    </Grid>
+                  )
+                })}
               </Grid>
             )}
           </Box>

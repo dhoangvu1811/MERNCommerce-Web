@@ -70,7 +70,7 @@ function Checkout() {
     try {
       const res = await createOrder(payload)
       const created = res?.data
-      if (created?.id || created?._id) {
+      if (created?.id || created?._id || created?.orderCode) {
         toast.success('Đặt hàng thành công!')
         // Remove only the purchased items from the cart
         const purchasedItemIds = items.map((it) => it.productId)
