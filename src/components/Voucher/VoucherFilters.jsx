@@ -37,7 +37,7 @@ const VoucherFilters = ({
         <ToggleButton value='fixed'>Cố định</ToggleButton>
       </ToggleButtonGroup>
 
-      <FormControlLabel
+      {/* <FormControlLabel
         control={
           <Switch
             checked={onlyActive}
@@ -45,7 +45,7 @@ const VoucherFilters = ({
           />
         }
         label='Chỉ hiển thị đang hoạt động'
-      />
+      /> */}
     </Box>
   )
 }

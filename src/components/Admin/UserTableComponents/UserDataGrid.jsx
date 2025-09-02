@@ -6,7 +6,12 @@ import {
   Chip,
   Avatar,
   Typography,
-  Button
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 import EditIcon from '@mui/icons-material/Edit'
@@ -24,6 +29,7 @@ const UserDataGrid = ({
   loading = false
 }) => {
   const [selectedRows, setSelectedRows] = useState([])
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
 
   // Xử lý bulk delete
   const handleBulkDelete = async () => {
@@ -32,9 +38,21 @@ const UserDataGrid = ({
     try {
       await onBulkDelete(selectedRows)
       setSelectedRows([]) // Reset selection sau khi xóa
+      setOpenDeleteDialog(false) // Đóng dialog
     } catch {
       // Xử lý lỗi bulk delete
+      setOpenDeleteDialog(false) // Đóng dialog ngay cả khi có lỗi
     }
+  }
+
+  // Mở dialog xác nhận xóa
+  const handleOpenDeleteDialog = () => {
+    setOpenDeleteDialog(true)
+  }
+
+  // Đóng dialog xác nhận xóa
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false)
   }
   // Column definitions for DataGrid
   const columns = [
@@ -172,13 +190,44 @@ const UserDataGrid = ({
             variant='contained'
             color='error'
             startIcon={<DeleteForeverIcon />}
-            onClick={handleBulkDelete}
+            onClick={handleOpenDeleteDialog}
             disabled={loading}
           >
             Xóa tất cả
           </Button>
         </Box>
       )}
+
+      {/* Dialog xác nhận xóa */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={handleCloseDeleteDialog}
+        aria-labelledby='delete-dialog-title'
+        aria-describedby='delete-dialog-description'
+      >
+        <DialogTitle id='delete-dialog-title'>
+          Xác nhận xóa người dùng
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id='delete-dialog-description'>
+            Bạn có chắc chắn muốn xóa {selectedRows.length} người dùng đã chọn?
+            Hành động này không thể hoàn tác.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog} color='primary'>
+            Hủy
+          </Button>
+          <Button
+            onClick={handleBulkDelete}
+            color='error'
+            variant='contained'
+            disabled={loading}
+          >
+            Xóa
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <DataGrid
         rows={users}
