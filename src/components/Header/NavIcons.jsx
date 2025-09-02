@@ -25,6 +25,7 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import ReceiptIcon from '@mui/icons-material/Receipt'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import LogoutIcon from '@mui/icons-material/Logout'
+import DiscountTwoToneIcon from '@mui/icons-material/DiscountTwoTone'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import LoginDialog from '../auth/LoginDialog'
 import RegisterDialog from '../auth/RegisterDialog'
@@ -258,6 +259,20 @@ function NavIcons() {
                             </Typography>
                           </MenuItem>
                         )}
+
+                        <MenuItem
+                          component={Link}
+                          to='/vouchers'
+                          onClick={handleClose}
+                          sx={{ py: 1.5 }}
+                        >
+                          <ListItemIcon>
+                            <DiscountTwoToneIcon fontSize='small' />
+                          </ListItemIcon>
+                          <Typography variant='body2'>
+                            Voucher giảm giá
+                          </Typography>
+                        </MenuItem>
 
                         <MenuItem
                           component={Link}

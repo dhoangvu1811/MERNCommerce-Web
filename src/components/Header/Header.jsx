@@ -1,9 +1,17 @@
-import { AppBar, Toolbar, Box, Container, useMediaQuery } from '@mui/material'
+import {
+  AppBar,
+  Toolbar,
+  Box,
+  Container,
+  useMediaQuery,
+  SvgIcon
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import Logo from './Logo'
+import ECommerceIcon from '~/assets/logo/logo.svg?react'
 import SearchBox from './SearchBox'
 import NavIcons from './NavIcons'
 import ModeSelect from '../ModeSelect/ModeSelect'
+import Logo from './Logo'
 
 function Header() {
   const theme = useTheme()
@@ -23,6 +31,15 @@ function Header() {
         >
           {/* Logo section */}
           <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            {/* <SvgIcon
+              component={ECommerceIcon}
+              inheritViewBox
+              sx={{
+                fontSize: { xs: '3rem', sm: '3.5rem', md: '5rem' },
+                color: theme.palette.mode === 'dark' ? 'white' : 'black',
+                transition: 'color 0.3s ease'
+              }}
+            /> */}
             <Logo />
           </Box>
 

@@ -7,7 +7,12 @@ import {
   Typography,
   Button,
   Tooltip,
-  Switch
+  Switch,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 import EditIcon from '@mui/icons-material/Edit'
@@ -27,15 +32,28 @@ const VoucherDataGrid = ({
   onPageSizeChange
 }) => {
   const [selectedRows, setSelectedRows] = useState([])
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
 
   const handleBulkDelete = async () => {
     if (selectedRows.length === 0) return
     try {
       await onBulkDelete(selectedRows)
       setSelectedRows([])
+      setOpenDeleteDialog(false) // Đóng dialog
     } catch {
       // Errors are handled upstream in parent or intentionally ignored for mock mode
+      setOpenDeleteDialog(false) // Đóng dialog ngay cả khi có lỗi
     }
+  }
+
+  // Mở dialog xác nhận xóa
+  const handleOpenDeleteDialog = () => {
+    setOpenDeleteDialog(true)
+  }
+
+  // Đóng dialog xác nhận xóa
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false)
   }
 
   // Dùng util chung để tránh lệch timezone
@@ -200,13 +218,42 @@ const VoucherDataGrid = ({
             variant='contained'
             color='error'
             startIcon={<DeleteForeverIcon />}
-            onClick={handleBulkDelete}
+            onClick={handleOpenDeleteDialog}
             disabled={loading}
           >
             Xóa tất cả
           </Button>
         </Box>
       )}
+
+      {/* Dialog xác nhận xóa */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={handleCloseDeleteDialog}
+        aria-labelledby='delete-dialog-title'
+        aria-describedby='delete-dialog-description'
+      >
+        <DialogTitle id='delete-dialog-title'>Xác nhận xóa voucher</DialogTitle>
+        <DialogContent>
+          <DialogContentText id='delete-dialog-description'>
+            Bạn có chắc chắn muốn xóa {selectedRows.length} voucher đã chọn?
+            Hành động này không thể hoàn tác.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog} color='primary'>
+            Hủy
+          </Button>
+          <Button
+            onClick={handleBulkDelete}
+            color='error'
+            variant='contained'
+            disabled={loading}
+          >
+            Xóa
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <DataGrid
         rows={vouchers}
