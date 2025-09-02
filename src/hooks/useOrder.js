@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
-import { getAllOrders } from '../apis/orderApi'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { toast } from 'react-toastify'
+import { getAllOrders, markOrderPaid } from '../apis/orderApi'
 
 const useOrder = () => {
   const [orders, setOrders] = useState([])
@@ -17,38 +18,41 @@ const useOrder = () => {
   })
 
   // Load orders from API
-  const loadOrders = async (page = 1, itemsPerPage = 10, searchQuery = '') => {
-    try {
-      setLoading(true)
+  const loadOrders = useCallback(
+    async (page = 1, itemsPerPage = 10, searchQuery = '') => {
+      try {
+        setLoading(true)
 
-      const params = {
-        page,
-        itemsPerPage,
-        ...filters
+        const params = {
+          page,
+          itemsPerPage,
+          ...filters
+        }
+
+        if (searchQuery) {
+          params.search = searchQuery
+        }
+
+        const response = await getAllOrders(params)
+
+        if (response.code === 200) {
+          setOrders(response.data.orders || [])
+          setPagination({
+            page: response.data.pagination?.page || 1,
+            itemsPerPage: response.data.pagination?.itemsPerPage || 10,
+            totalOrders: response.data.pagination?.totalOrders || 0,
+            totalPages: response.data.pagination?.totalPages || 0
+          })
+        }
+      } catch {
+        // Error handling is centralized in axiosConfig.js
+        setOrders([])
+      } finally {
+        setLoading(false)
       }
-
-      if (searchQuery) {
-        params.search = searchQuery
-      }
-
-      const response = await getAllOrders(params)
-
-      if (response.code === 200) {
-        setOrders(response.data.orders || [])
-        setPagination({
-          page: response.data.pagination?.page || 1,
-          itemsPerPage: response.data.pagination?.itemsPerPage || 10,
-          totalOrders: response.data.pagination?.totalOrders || 0,
-          totalPages: response.data.pagination?.totalPages || 0
-        })
-      }
-    } catch {
-      // Error handling is centralized in axiosConfig.js
-      setOrders([])
-    } finally {
-      setLoading(false)
-    }
-  }
+    },
+    [filters]
+  )
 
   // Load orders on component mount and when filters change
   useEffect(() => {
@@ -56,7 +60,7 @@ const useOrder = () => {
       await loadOrders(1, 10, filters.search)
     }
     fetchOrders()
-  }, [filters])
+  }, [filters, loadOrders])
 
   // Filter orders based on search term (client-side for immediate feedback)
   const getFilteredOrders = useMemo(() => {
@@ -103,6 +107,20 @@ const useOrder = () => {
     loadOrders(pagination.page, pagination.itemsPerPage, filters.search)
   }
 
+  // Handle mark order as paid
+  const handleMarkOrderPaid = async (orderId) => {
+    setLoading(true)
+    const response = await markOrderPaid(orderId)
+
+    if (response.code === 200) {
+      // Refresh orders list to get updated data
+      refreshOrders()
+      toast.success('Đã đánh dấu đơn hàng đã thanh toán thành công')
+    }
+
+    setLoading(false)
+  }
+
   return {
     // State
     orders,
@@ -117,7 +135,8 @@ const useOrder = () => {
     handlePageChange,
     handlePageSizeChange,
     handleFilterChange,
-    refreshOrders
+    refreshOrders,
+    handleMarkOrderPaid
   }
 }
 

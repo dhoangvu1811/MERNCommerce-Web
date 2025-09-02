@@ -1,5 +1,5 @@
 import React from 'react'
-import { Paper, Chip, IconButton, Box } from '@mui/material'
+import { Paper, Chip, IconButton, Box, Tooltip } from '@mui/material'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop'
@@ -18,8 +18,8 @@ const OrderDataGrid = ({
   // Transform API data to match DataGrid format
   const transformedOrders = filteredOrders.map((order) => ({
     id: order._id,
-    orderNumber: order._id?.slice(-8) || 'N/A',
-    createdAt: formatDate(order.createdAt, { withTime: true }),
+    orderNumber: order?.orderCode || order._id?.slice(-8) || 'N/A',
+    createdAtFormatted: formatDate(order.createdAt, { withTime: true }),
     userName: order.shippingAddress?.name || 'N/A',
     userEmail: 'N/A', // Email không có trong response
     phone: order.shippingAddress?.phone || 'N/A',
@@ -40,7 +40,7 @@ const OrderDataGrid = ({
       width: 120
     },
     {
-      field: 'createdAt',
+      field: 'createdAtFormatted',
       headerName: 'Ngày đặt',
       width: 160
     },
@@ -114,58 +114,68 @@ const OrderDataGrid = ({
       disableExport: true,
       renderCell: (params) => (
         <Box>
-          <IconButton
-            size='small'
-            color='primary'
-            onClick={() => onViewDetails(params.row.id)}
-          >
-            <VisibilityIcon fontSize='small' />
-          </IconButton>
-          <IconButton
-            size='small'
-            color='secondary'
-            onClick={() => onPrint(params.row.id)}
-          >
-            <LocalPrintshopIcon fontSize='small' />
-          </IconButton>
+          <Tooltip title='Xem chi tiết'>
+            <IconButton
+              size='small'
+              color='primary'
+              onClick={() => onViewDetails(params.row.id)}
+            >
+              <VisibilityIcon fontSize='small' />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title='In hóa đơn'>
+            <IconButton
+              size='small'
+              color='secondary'
+              onClick={() => onPrint(params.row.id)}
+            >
+              <LocalPrintshopIcon fontSize='small' />
+            </IconButton>
+          </Tooltip>
         </Box>
       )
     }
   ]
 
   return (
-    <Paper sx={{ height: 'calc(100vh - 230px)', width: '100%' }}>
-      <DataGrid
-        rows={transformedOrders}
-        columns={columns}
-        loading={loading}
-        paginationModel={{
-          pageSize: pagination?.itemsPerPage || 10,
-          page: (pagination?.page || 1) - 1
-        }}
-        pageSizeOptions={[5, 10, 25]}
-        paginationMode='server'
-        rowCount={pagination?.totalOrders || 0}
-        onPaginationModelChange={(model) => {
-          if (onPageChange && model.page !== (pagination?.page || 1) - 1) {
-            onPageChange(model.page + 1)
-          }
-          if (onPageSizeChange && model.pageSize !== pagination?.itemsPerPage) {
-            onPageSizeChange(model.pageSize)
-          }
-        }}
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-            quickFilterProps: { debounceMs: 500 }
-          }
-        }}
-        disableRowSelectionOnClick
-        checkboxSelection
-        autoHeight
-      />
-    </Paper>
+    <>
+      <Paper sx={{ height: 'calc(100vh - 230px)', width: '100%' }}>
+        <DataGrid
+          rows={transformedOrders}
+          columns={columns}
+          loading={loading}
+          paginationModel={{
+            pageSize: pagination?.itemsPerPage || 10,
+            page: (pagination?.page || 1) - 1
+          }}
+          pageSizeOptions={[5, 10, 25]}
+          paginationMode='server'
+          rowCount={pagination?.totalOrders || 0}
+          onPaginationModelChange={(model) => {
+            if (onPageChange && model.page !== (pagination?.page || 1) - 1) {
+              onPageChange(model.page + 1)
+            }
+            if (
+              onPageSizeChange &&
+              model.pageSize !== pagination?.itemsPerPage
+            ) {
+              onPageSizeChange(model.pageSize)
+            }
+          }}
+          slots={{ toolbar: GridToolbar }}
+          slotProps={{
+            toolbar: {
+              showQuickFilter: true,
+              quickFilterProps: { debounceMs: 500 }
+            }
+          }}
+          disableRowSelectionOnClick
+          checkboxSelection
+          autoHeight
+        />
+      </Paper>
+    </>
   )
 }
 

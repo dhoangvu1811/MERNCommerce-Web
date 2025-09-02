@@ -20,15 +20,24 @@ import {
   TableRow,
   Paper,
   Stack,
-  Avatar
+  Avatar,
+  DialogContentText
 } from '@mui/material'
 import { formatPrice, formatDate } from '../../../utils/formatUtils'
 import { getOrderStatusConfig } from '../../../utils/orderConstants'
 import { getAdminOrderDetails } from '../../../apis/orderApi'
 
-const OrderDetailsDialog = ({ open, onClose, selectedOrder, onPrint }) => {
+const OrderDetailsDialog = ({
+  open,
+  onClose,
+  selectedOrder,
+  onPrint,
+  onMarkOrderPaid
+}) => {
   const [orderDetails, setOrderDetails] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [actionLoading, setActionLoading] = useState(false)
+  const [confirmDialog, setConfirmDialog] = useState(false)
 
   // Load detailed order information when dialog opens
   useEffect(() => {
@@ -43,7 +52,7 @@ const OrderDetailsDialog = ({ open, onClose, selectedOrder, onPrint }) => {
 
       const response = await getAdminOrderDetails(orderId)
 
-      if (response.success) {
+      if (response.code === 200) {
         setOrderDetails(response.data)
       }
     } catch {
@@ -56,7 +65,30 @@ const OrderDetailsDialog = ({ open, onClose, selectedOrder, onPrint }) => {
 
   const handleClose = () => {
     setOrderDetails(null)
+    setConfirmDialog(false)
     onClose()
+  }
+
+  // Handle mark order as paid confirmation
+  const handleMarkOrderAsPaid = () => {
+    setConfirmDialog(true)
+  }
+
+  // Handle confirm mark order as paid
+  const handleConfirmMarkPaid = async () => {
+    if (!order?._id) return
+
+    setActionLoading(true)
+    await onMarkOrderPaid(order._id)
+    // Reload order details to get updated status
+    await loadOrderDetails(order._id)
+    setActionLoading(false)
+    setConfirmDialog(false)
+  }
+
+  // Handle close confirm dialog
+  const handleCloseConfirmDialog = () => {
+    setConfirmDialog(false)
   }
 
   const order = orderDetails || selectedOrder
@@ -87,339 +119,401 @@ const OrderDetailsDialog = ({ open, onClose, selectedOrder, onPrint }) => {
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth='lg' fullWidth>
-      <DialogTitle sx={{ pb: 1 }}>
-        <Stack
-          direction='row'
-          alignItems='center'
-          justifyContent='space-between'
-          gap={2}
-        >
-          <Box>
-            <Typography variant='h6' fontWeight={700}>
-              Chi tiết đơn hàng #
-              {order?.orderNumber || order?._id?.slice(-8) || 'N/A'}
-            </Typography>
-            {order?.createdAt && (
-              <Typography variant='caption' color='text.secondary'>
-                Tạo lúc: {formatDate(order.createdAt, { withTime: true })}
-              </Typography>
-            )}
-          </Box>
-          {statusConfig && (
-            <Chip
-              label={statusConfig.label}
-              color={statusConfig.color}
-              size='small'
-            />
-          )}
-        </Stack>
-      </DialogTitle>
-      <DialogContent>
-        {loading && (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              height: '200px'
-            }}
+    <>
+      <Dialog open={open} onClose={handleClose} maxWidth='lg' fullWidth>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Stack
+            direction='row'
+            alignItems='center'
+            justifyContent='space-between'
+            gap={2}
           >
-            <CircularProgress />
-          </Box>
-        )}
+            <Box>
+              <Typography variant='h6' fontWeight={700}>
+                Chi tiết đơn hàng #
+                {order?.orderCode || order?._id?.slice(-8) || 'N/A'}
+              </Typography>
+              {order?.createdAt && (
+                <Typography variant='caption' color='text.secondary'>
+                  Tạo lúc: {formatDate(order.createdAt, { withTime: true })}
+                </Typography>
+              )}
+            </Box>
+            {statusConfig && (
+              <Chip
+                label={statusConfig.label}
+                color={statusConfig.color}
+                size='small'
+              />
+            )}
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          {loading && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '200px'
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          )}
 
-        {order && !loading && (
-          <Box sx={{ mt: 1 }}>
-            <Grid container spacing={3}>
-              {/* Thông tin khách hàng */}
-              <Grid item xs={12} md={6}>
-                <Paper variant='outlined' sx={{ p: 2, borderRadius: 2 }}>
-                  <Typography
-                    variant='subtitle1'
-                    gutterBottom
-                    color='primary'
-                    fontWeight={700}
-                  >
-                    Thông tin khách hàng
-                  </Typography>
-                  <Stack
-                    direction='row'
-                    spacing={2}
-                    alignItems='center'
-                    sx={{ mb: 1 }}
-                  >
-                    <Avatar sx={{ bgcolor: 'primary.main' }}>
-                      {(order.shippingAddress?.name || 'N')[0]}
-                    </Avatar>
+          {order && !loading && (
+            <Box sx={{ mt: 1 }}>
+              <Grid container spacing={3}>
+                {/* Thông tin khách hàng */}
+                <Grid item xs={12} md={6}>
+                  <Paper variant='outlined' sx={{ p: 2, borderRadius: 2 }}>
+                    <Typography
+                      variant='subtitle1'
+                      gutterBottom
+                      color='primary'
+                      fontWeight={700}
+                    >
+                      Thông tin khách hàng
+                    </Typography>
+                    <Stack
+                      direction='row'
+                      spacing={2}
+                      alignItems='center'
+                      sx={{ mb: 1 }}
+                    >
+                      <Avatar sx={{ bgcolor: 'primary.main' }}>
+                        {(order.shippingAddress?.name || 'N')[0]}
+                      </Avatar>
+                      <Box>
+                        <Typography variant='body1' fontWeight='medium'>
+                          {order.shippingAddress?.name || 'N/A'}
+                        </Typography>
+                        <Typography variant='body2' color='text.secondary'>
+                          {order.shippingAddress?.phone || 'N/A'}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                    <Divider sx={{ my: 1 }} />
                     <Box>
-                      <Typography variant='body1' fontWeight='medium'>
-                        {order.shippingAddress?.name || 'N/A'}
-                      </Typography>
                       <Typography variant='body2' color='text.secondary'>
-                        {order.shippingAddress?.phone || 'N/A'}
+                        Địa chỉ giao hàng
+                      </Typography>
+                      <Typography variant='body1' fontWeight='medium'>
+                        {order.shippingAddress?.fullAddress || 'N/A'}
                       </Typography>
                     </Box>
-                  </Stack>
-                  <Divider sx={{ my: 1 }} />
-                  <Box>
-                    <Typography variant='body2' color='text.secondary'>
-                      Địa chỉ giao hàng
-                    </Typography>
-                    <Typography variant='body1' fontWeight='medium'>
-                      {order.shippingAddress?.fullAddress || 'N/A'}
-                    </Typography>
-                  </Box>
-                </Paper>
-              </Grid>
+                  </Paper>
+                </Grid>
 
-              {/* Thông tin đơn hàng */}
-              <Grid item xs={12} md={6}>
-                <Paper variant='outlined' sx={{ p: 2, borderRadius: 2 }}>
-                  <Typography
-                    variant='subtitle1'
-                    gutterBottom
-                    color='primary'
-                    fontWeight={700}
-                  >
-                    Thông tin đơn hàng
-                  </Typography>
-                  <Box sx={{ mb: 1 }}>
-                    <Typography variant='body2' color='text.secondary'>
-                      Ngày đặt hàng
+                {/* Thông tin đơn hàng */}
+                <Grid item xs={12} md={6}>
+                  <Paper variant='outlined' sx={{ p: 2, borderRadius: 2 }}>
+                    <Typography
+                      variant='subtitle1'
+                      gutterBottom
+                      color='primary'
+                      fontWeight={700}
+                    >
+                      Thông tin đơn hàng
                     </Typography>
-                    <Typography variant='body1' fontWeight='medium'>
-                      {formatDate(order.createdAt, { withTime: true })}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ mb: 1 }}>
-                    <Typography variant='body2' color='text.secondary'>
-                      Phương thức thanh toán
-                    </Typography>
-                    <Chip
-                      label={paymentMethodLabel(order.paymentMethod)}
-                      size='small'
-                      color='default'
-                      variant='outlined'
-                    />
-                  </Box>
-                  <Box sx={{ mb: 1 }}>
-                    <Typography variant='body2' color='text.secondary'>
-                      Trạng thái đơn hàng
-                    </Typography>
-                    {statusConfig && (
-                      <Chip
-                        label={statusConfig.label}
-                        color={statusConfig.color}
-                        size='small'
-                      />
-                    )}
-                  </Box>
-                  {order.notes && (
                     <Box sx={{ mb: 1 }}>
                       <Typography variant='body2' color='text.secondary'>
-                        Ghi chú
+                        Ngày đặt hàng
                       </Typography>
                       <Typography variant='body1' fontWeight='medium'>
-                        {order.notes}
+                        {formatDate(order.createdAt, { withTime: true })}
                       </Typography>
                     </Box>
-                  )}
-                </Paper>
-              </Grid>
-
-              {/* Danh sách sản phẩm */}
-              {order.items && order.items.length > 0 && (
-                <Grid item xs={12}>
-                  <Typography
-                    variant='subtitle1'
-                    gutterBottom
-                    color='primary'
-                    fontWeight={700}
-                  >
-                    Danh sách sản phẩm
-                  </Typography>
-                  <TableContainer
-                    component={Paper}
-                    variant='outlined'
-                    sx={{ borderRadius: 2, maxHeight: 380 }}
-                  >
-                    <Table size='small' stickyHeader>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Sản phẩm</TableCell>
-                          <TableCell align='center'>Số lượng</TableCell>
-                          <TableCell align='right'>Giảm (%)</TableCell>
-                          <TableCell align='right'>Đơn giá</TableCell>
-                          <TableCell align='right'>Thành tiền</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {order.items.map((item, index) => (
-                          <TableRow key={index}>
-                            <TableCell>
-                              <Box
-                                sx={{ display: 'flex', alignItems: 'center' }}
-                              >
-                                {item.image && (
-                                  <Box
-                                    component='img'
-                                    src={item.image}
-                                    alt={item.name}
-                                    sx={{
-                                      width: 44,
-                                      height: 44,
-                                      mr: 2,
-                                      objectFit: 'cover',
-                                      borderRadius: 1,
-                                      border: '1px solid',
-                                      borderColor: 'divider'
-                                    }}
-                                  />
-                                )}
-                                <Box>
-                                  <Typography
-                                    variant='body2'
-                                    fontWeight='medium'
-                                  >
-                                    {item.name || 'N/A'}
-                                  </Typography>
-                                  <Typography
-                                    variant='caption'
-                                    color='text.secondary'
-                                  >
-                                    ID: {item.productId}
-                                  </Typography>
-                                </Box>
-                              </Box>
-                            </TableCell>
-                            <TableCell align='center'>
-                              {item.quantity}
-                            </TableCell>
-                            <TableCell align='right'>
-                              {`${item.discount ?? 0}%`}
-                            </TableCell>
-                            <TableCell align='right'>
-                              {formatPrice(item.unitPrice)}
-                            </TableCell>
-                            <TableCell align='right'>
-                              {formatPrice(item.lineTotal)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Grid>
-              )}
-
-              {/* Tổng tiền */}
-              <Grid item xs={12}>
-                <Divider sx={{ my: 2 }} />
-                {order.totals && (
-                  <Grid container spacing={2} sx={{ mb: 1 }}>
-                    <Grid item xs={12} md={7}>
-                      <Paper variant='outlined' sx={{ p: 2, borderRadius: 2 }}>
-                        <Stack spacing={1}>
-                          {itemDiscount > 0 && (
-                            <Stack
-                              direction='row'
-                              justifyContent='space-between'
-                            >
-                              <Typography variant='body2'>
-                                Giá gốc (trước giảm)
-                              </Typography>
-                              <Typography variant='body2'>
-                                {formatPrice(itemsGross)}
-                              </Typography>
-                            </Stack>
-                          )}
-                          <Stack direction='row' justifyContent='space-between'>
-                            <Typography variant='body2'>
-                              Tạm tính (sau giảm giá SP)
-                            </Typography>
-                            <Typography variant='body2'>
-                              {formatPrice(order.totals.subtotal || 0)}
-                            </Typography>
-                          </Stack>
-                          <Stack direction='row' justifyContent='space-between'>
-                            <Typography variant='body2'>
-                              Phí vận chuyển
-                            </Typography>
-                            <Typography variant='body2'>
-                              {formatPrice(order.totals.shippingFee || 0)}
-                            </Typography>
-                          </Stack>
-
-                          {voucherDiscount > 0 && (
-                            <Stack
-                              direction='row'
-                              justifyContent='space-between'
-                            >
-                              <Typography variant='body2'>
-                                Giảm giá voucher ({order.voucher.code})
-                              </Typography>
-                              <Typography variant='body2' color='success.main'>
-                                -{formatPrice(voucherDiscount)}
-                              </Typography>
-                            </Stack>
-                          )}
-                        </Stack>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12} md={5}>
-                      <Paper
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant='body2' color='text.secondary'>
+                        Phương thức thanh toán
+                      </Typography>
+                      <Chip
+                        label={paymentMethodLabel(order.paymentMethod)}
+                        size='small'
+                        color='default'
                         variant='outlined'
-                        sx={{
-                          p: 2,
-                          borderRadius: 2,
-                          height: '100%',
-                          bgcolor: 'grey.50'
-                        }}
-                      >
-                        <Stack
-                          direction='row'
-                          alignItems='center'
-                          justifyContent='space-between'
-                        >
-                          <Typography
-                            variant='subtitle1'
-                            color='primary'
-                            fontWeight={700}
-                          >
-                            Tổng tiền
-                          </Typography>
-                          <Typography
-                            variant='h5'
-                            color='error'
-                            fontWeight='bold'
-                          >
-                            {formatPrice(order.totals?.payable || 0)}
-                          </Typography>
-                        </Stack>
-                      </Paper>
-                    </Grid>
+                      />
+                    </Box>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant='body2' color='text.secondary'>
+                        Trạng thái đơn hàng
+                      </Typography>
+                      {statusConfig && (
+                        <Chip
+                          label={statusConfig.label}
+                          color={statusConfig.color}
+                          size='small'
+                        />
+                      )}
+                    </Box>
+                    {order.notes && (
+                      <Box sx={{ mb: 1 }}>
+                        <Typography variant='body2' color='text.secondary'>
+                          Ghi chú
+                        </Typography>
+                        <Typography variant='body1' fontWeight='medium'>
+                          {order.notes}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Paper>
+                </Grid>
+
+                {/* Danh sách sản phẩm */}
+                {order.items && order.items.length > 0 && (
+                  <Grid item xs={12}>
+                    <Typography
+                      variant='subtitle1'
+                      gutterBottom
+                      color='primary'
+                      fontWeight={700}
+                    >
+                      Danh sách sản phẩm
+                    </Typography>
+                    <TableContainer
+                      component={Paper}
+                      variant='outlined'
+                      sx={{ borderRadius: 2, maxHeight: 380 }}
+                    >
+                      <Table size='small' stickyHeader>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Sản phẩm</TableCell>
+                            <TableCell align='center'>Số lượng</TableCell>
+                            <TableCell align='right'>Giảm (%)</TableCell>
+                            <TableCell align='right'>Đơn giá</TableCell>
+                            <TableCell align='right'>Thành tiền</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {order.items.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell>
+                                <Box
+                                  sx={{ display: 'flex', alignItems: 'center' }}
+                                >
+                                  {item.image && (
+                                    <Box
+                                      component='img'
+                                      src={item.image}
+                                      alt={item.name}
+                                      sx={{
+                                        width: 44,
+                                        height: 44,
+                                        mr: 2,
+                                        objectFit: 'cover',
+                                        borderRadius: 1,
+                                        border: '1px solid',
+                                        borderColor: 'divider'
+                                      }}
+                                    />
+                                  )}
+                                  <Box>
+                                    <Typography
+                                      variant='body2'
+                                      fontWeight='medium'
+                                    >
+                                      {item.name || 'N/A'}
+                                    </Typography>
+                                    <Typography
+                                      variant='caption'
+                                      color='text.secondary'
+                                    >
+                                      ID: {item.productId}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              </TableCell>
+                              <TableCell align='center'>
+                                {item.quantity}
+                              </TableCell>
+                              <TableCell align='right'>
+                                {`${item.discount ?? 0}%`}
+                              </TableCell>
+                              <TableCell align='right'>
+                                {formatPrice(item.unitPrice)}
+                              </TableCell>
+                              <TableCell align='right'>
+                                {formatPrice(item.lineTotal)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
                   </Grid>
                 )}
+
+                {/* Tổng tiền */}
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 2 }} />
+                  {order.totals && (
+                    <Grid container spacing={2} sx={{ mb: 1 }}>
+                      <Grid item xs={12} md={7}>
+                        <Paper
+                          variant='outlined'
+                          sx={{ p: 2, borderRadius: 2 }}
+                        >
+                          <Stack spacing={1}>
+                            {itemDiscount > 0 && (
+                              <Stack
+                                direction='row'
+                                justifyContent='space-between'
+                              >
+                                <Typography variant='body2'>
+                                  Giá gốc (trước giảm)
+                                </Typography>
+                                <Typography variant='body2'>
+                                  {formatPrice(itemsGross)}
+                                </Typography>
+                              </Stack>
+                            )}
+                            <Stack
+                              direction='row'
+                              justifyContent='space-between'
+                            >
+                              <Typography variant='body2'>
+                                Tạm tính (sau giảm giá SP)
+                              </Typography>
+                              <Typography variant='body2'>
+                                {formatPrice(order.totals.subtotal || 0)}
+                              </Typography>
+                            </Stack>
+                            <Stack
+                              direction='row'
+                              justifyContent='space-between'
+                            >
+                              <Typography variant='body2'>
+                                Phí vận chuyển
+                              </Typography>
+                              <Typography variant='body2'>
+                                {formatPrice(order.totals.shippingFee || 0)}
+                              </Typography>
+                            </Stack>
+
+                            {voucherDiscount > 0 && (
+                              <Stack
+                                direction='row'
+                                justifyContent='space-between'
+                              >
+                                <Typography variant='body2'>
+                                  Giảm giá voucher ({order.voucher.code})
+                                </Typography>
+                                <Typography
+                                  variant='body2'
+                                  color='success.main'
+                                >
+                                  -{formatPrice(voucherDiscount)}
+                                </Typography>
+                              </Stack>
+                            )}
+                          </Stack>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={12} md={5}>
+                        <Paper
+                          variant='outlined'
+                          sx={{
+                            p: 2,
+                            borderRadius: 2,
+                            height: '100%',
+                            bgcolor: 'grey.50'
+                          }}
+                        >
+                          <Stack
+                            direction='row'
+                            alignItems='center'
+                            justifyContent='space-between'
+                          >
+                            <Typography
+                              variant='subtitle1'
+                              color='primary'
+                              fontWeight={700}
+                            >
+                              Tổng tiền
+                            </Typography>
+                            <Typography
+                              variant='h5'
+                              color='error'
+                              fontWeight='bold'
+                            >
+                              {formatPrice(order.totals?.payable || 0)}
+                            </Typography>
+                          </Stack>
+                        </Paper>
+                      </Grid>
+                    </Grid>
+                  )}
+                </Grid>
               </Grid>
-            </Grid>
-          </Box>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color='primary'>
-          Đóng
-        </Button>
-        <Button
-          onClick={() => onPrint(order?._id)}
-          color='secondary'
-          variant='contained'
-          disabled={!order}
-        >
-          In hóa đơn
-        </Button>
-      </DialogActions>
-    </Dialog>
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleClose} color='primary'>
+            Đóng
+          </Button>
+
+          {/* Chỉ hiển thị button đánh dấu đã thanh toán nếu chưa thanh toán và chưa hủy */}
+          {order &&
+            order.paymentStatus !== 'PAID' &&
+            order.status !== 'CANCELLED' && (
+              <Button
+                onClick={handleMarkOrderAsPaid}
+                color='success'
+                variant='outlined'
+                disabled={!order || actionLoading}
+              >
+                {actionLoading ? 'Đang xử lý...' : 'Đánh dấu đã thanh toán'}
+              </Button>
+            )}
+
+          <Button
+            onClick={() => onPrint(order?._id)}
+            color='secondary'
+            variant='contained'
+            disabled={!order}
+          >
+            In hóa đơn
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Confirmation Dialog for Mark Order as Paid */}
+      <Dialog
+        open={confirmDialog}
+        onClose={handleCloseConfirmDialog}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Xác nhận đánh dấu đã thanh toán</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Bạn có chắc chắn muốn đánh dấu đơn hàng #
+            {order?.orderCode || order?._id} đã thanh toán?
+            <br />
+            Hành động này không thể hoàn tác.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirmDialog} color='inherit'>
+            Hủy
+          </Button>
+          <Button
+            onClick={handleConfirmMarkPaid}
+            color='success'
+            variant='contained'
+            disabled={actionLoading}
+            startIcon={actionLoading ? <CircularProgress size={20} /> : null}
+          >
+            {actionLoading ? 'Đang xử lý...' : 'Xác nhận'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   )
 }
 
