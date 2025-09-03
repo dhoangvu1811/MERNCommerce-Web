@@ -23,7 +23,7 @@ export const loginUser = createAsyncThunk(
     const data = await userApi.login(loginData)
     // Sync với authSlice để persist
     dispatch(setUser(data.data.user))
-    toast.success('Login successful!')
+    toast.success('Đăng nhập thành công!')
     return data
   }
 )
@@ -32,7 +32,7 @@ export const registerUser = createAsyncThunk(
   'user/registerUser',
   async (registerData) => {
     const data = await userApi.register(registerData)
-    toast.success('Registration successful! Please log in.')
+    toast.success('Đăng ký thành công! Vui lòng đăng nhập.')
     return data
   }
 )
@@ -44,7 +44,7 @@ export const logoutUser = createAsyncThunk(
     // Clear auth state
     dispatch(clearUser())
     if (showSuccessMessage) {
-      toast.success('Logged out successfully!')
+      toast.success('Đăng xuất thành công!')
     }
     return true
   }
@@ -71,8 +71,8 @@ export const updateCurrentUser = createAsyncThunk(
   async (userData, { dispatch }) => {
     const data = await userApi.updateCurrentUser(userData)
     // Sync updated user với authSlice
-    dispatch(updateUser(data.data))
-    toast.success('Profile updated successfully!')
+    dispatch(updateUser(data.data.user))
+    toast.success('Cập nhật hồ sơ thành công!')
     return data
   }
 )
@@ -81,7 +81,7 @@ export const updatePassword = createAsyncThunk(
   'user/updatePassword',
   async (passwordData) => {
     const data = await userApi.updatePassword(passwordData)
-    toast.success('Password updated successfully!')
+    toast.success('Cập nhật mật khẩu thành công!')
     return data
   }
 )

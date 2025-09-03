@@ -334,10 +334,7 @@ function CartItem({
                   size='small'
                   sx={{ minWidth: 'unset' }}
                   disabled={
-                    applying ||
-                    !voucherCode.trim() ||
-                    !Number(orderTotal) ||
-                    !!appliedVoucher
+                    applying || !voucherCode.trim() || !Number(orderTotal)
                   }
                   onClick={handleApplyVoucher}
                 >
