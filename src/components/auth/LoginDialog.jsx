@@ -55,6 +55,7 @@ const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
       onClose()
     } catch {
       // Error đã được handle bởi interceptor
+      reset()
     } finally {
       setIsLoading(false)
     }

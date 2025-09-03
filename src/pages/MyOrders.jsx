@@ -37,23 +37,116 @@ function MyOrders() {
     id: o._id || o.id,
     orderCode: o.orderCode,
     orderDate: o.createdAt || o.orderDate,
+    updatedAt: o.updatedAt,
     status: o.status,
     paymentStatus: o.paymentStatus,
+    userId: o.userId,
+
+    // Detailed pricing information
+    pricing: {
+      // Tính giá gốc trước giảm giá sản phẩm
+      originalTotal: (o.items || []).reduce((sum, item) => {
+        return sum + (item.unitPrice || 0) * (item.quantity || 0)
+      }, 0),
+      subtotal: o.totals?.subtotal ?? 0, // Tạm tính (sau giảm giá sản phẩm, trước giảm voucher)
+      voucherDiscount: o.voucher?.discountApplied ?? 0, // Giảm giá voucher
+      shippingFee: o.totals?.shippingFee ?? 0, // Phí vận chuyển
+      finalTotal: o.totals?.payable ?? 0, // Tổng tiền phải trả
+      // Tính toán tổng tiết kiệm = giảm giá sản phẩm + giảm giá voucher
+      totalSavings:
+        (o.items || []).reduce((sum, item) => {
+          const itemOriginalTotal = (item.unitPrice || 0) * (item.quantity || 0)
+          const itemSavings = itemOriginalTotal - (item.lineTotal || 0)
+          return sum + itemSavings
+        }, 0) + (o.voucher?.discountApplied ?? 0)
+    },
+
     // Use totals.payable as per API documentation
     total: o.totals?.payable ?? 0,
+
+    // Enhanced items mapping with detailed pricing
     items: (o.items || []).map((it) => ({
       id: it.productId || it._id || it.id,
+      productId: it.productId,
       name: it.name,
-      // Use lineTotal as per API documentation for OrderItem
-      price: it.lineTotal ?? 0,
+      image: it.image,
       quantity: it.quantity,
-      image: it.image
+      unitPrice: it.unitPrice || 0, // Giá gốc 1 sản phẩm
+      discount: it.discount || 0, // % giảm giá sản phẩm
+      lineTotal: it.lineTotal ?? 0, // Tổng tiền dòng (đã trừ giảm giá)
+      // Tính toán giá trước và sau giảm giá
+      originalLineTotal: (it.unitPrice || 0) * (it.quantity || 0), // Giá gốc chưa giảm
+      savings: (it.unitPrice || 0) * (it.quantity || 0) - (it.lineTotal ?? 0) // Tiết kiệm được
     })),
+
+    // Enhanced voucher information
+    voucher: o.voucher
+      ? {
+          code: o.voucher.code,
+          type: o.voucher.type, // 'percent' hoặc 'fixed'
+          amount: o.voucher.amount, // Số tiền hoặc % giảm
+          discountApplied: o.voucher.discountApplied, // Số tiền thực tế được giảm
+          maxDiscount: o.voucher.maxDiscount, // Giảm tối đa
+          // Format hiển thị voucher
+          displayText:
+            o.voucher.type === 'percent'
+              ? `Giảm ${o.voucher.amount}% (tối đa ${(
+                  o.voucher.maxDiscount || 0
+                ).toLocaleString('vi-VN')}₫)`
+              : `Giảm ${(o.voucher.amount || 0).toLocaleString('vi-VN')}₫`
+        }
+      : null,
+
+    // Shipping and delivery information
     shippingAddress: o.shippingAddress,
     paymentMethod: o.paymentMethod,
     trackingNumber: o.trackingNumber,
     estimatedDelivery: o.estimatedDelivery,
-    cancelReason: o.cancelReason
+    cancelReason: o.cancelReason,
+
+    // Order logs for tracking history
+    logs: o.logs || [],
+
+    // Calculated fields for display
+    displayInfo: {
+      // Tỷ lệ tiết kiệm (tính dựa trên giá gốc)
+      savingsPercentage: (() => {
+        const originalTotal = (o.items || []).reduce((sum, item) => {
+          return sum + (item.unitPrice || 0) * (item.quantity || 0)
+        }, 0)
+        const totalSavings =
+          (o.items || []).reduce((sum, item) => {
+            const itemOriginalTotal =
+              (item.unitPrice || 0) * (item.quantity || 0)
+            const itemSavings = itemOriginalTotal - (item.lineTotal || 0)
+            return sum + itemSavings
+          }, 0) + (o.voucher?.discountApplied ?? 0)
+
+        return originalTotal > 0
+          ? Math.round((totalSavings / originalTotal) * 100)
+          : 0
+      })(),
+      // Phương thức thanh toán hiển thị
+      paymentMethodText:
+        {
+          card: 'Thẻ tín dụng',
+          cod: 'Thanh toán khi nhận hàng',
+          ewallet: 'Ví điện tử',
+          banking: 'Chuyển khoản ngân hàng'
+        }[o.paymentMethod] || o.paymentMethod,
+      // Tổng số sản phẩm
+      totalItems: (o.items || []).reduce(
+        (sum, item) => sum + (item.quantity || 0),
+        0
+      ),
+      // Có áp dụng giảm giá không (bao gồm cả sản phẩm và voucher)
+      hasDiscount:
+        (o.items || []).some((item) => {
+          const itemOriginalTotal = (item.unitPrice || 0) * (item.quantity || 0)
+          const itemSavings = itemOriginalTotal - (item.lineTotal || 0)
+          return itemSavings > 0
+        }) || (o.voucher?.discountApplied ?? 0) > 0
+    }
   })
 
   const load = useCallback(async () => {

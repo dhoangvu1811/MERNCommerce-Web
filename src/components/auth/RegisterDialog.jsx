@@ -62,6 +62,7 @@ const RegisterDialog = ({ open, onClose, onSuccess, onSwitchToLogin }) => {
       onClose()
     } catch {
       // Error đã được handle bởi interceptor
+      reset()
     } finally {
       setIsLoading(false)
     }

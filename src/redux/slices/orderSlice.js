@@ -75,7 +75,9 @@ const orderSlice = createSlice({
     },
     removeItems: (state, action) => {
       const idsToRemove = action.payload || []
-      state.items = state.items.filter((it) => !idsToRemove.includes(it.productId))
+      state.items = state.items.filter(
+        (it) => !idsToRemove.includes(it.productId)
+      )
     },
     updateQuantity: (state, action) => {
       const { productId, quantity } = action.payload || {}
@@ -108,6 +110,12 @@ const orderSlice = createSlice({
     },
     removeVoucher: (state) => {
       state.voucher = null
+    },
+    removeShippingAddress: (state) => {
+      state.shippingAddress = null
+    },
+    removePaymentMethod: (state) => {
+      state.paymentMethod = ''
     }
   }
 })
@@ -122,7 +130,9 @@ export const {
   setPaymentMethod,
   setShippingFee,
   applyVoucher,
-  removeVoucher
+  removeVoucher,
+  removeShippingAddress,
+  removePaymentMethod
 } = orderSlice.actions
 
 export const selectCartCount = (state) =>

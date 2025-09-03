@@ -11,7 +11,7 @@ import {
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { setPaymentMethod, removeItems } from '~/redux/slices/orderSlice'
+import { setPaymentMethod, removeItems, removePaymentMethod, removeShippingAddress, removeVoucher } from '~/redux/slices/orderSlice'
 import { createOrder } from '~/apis/orderApi'
 import ShippingAddressCard from '../components/Cart/ShippingAddressCard'
 import PaymentSummaryCard from '../components/Cart/PaymentSummaryCard'
@@ -75,6 +75,9 @@ function Checkout() {
         // Remove only the purchased items from the cart
         const purchasedItemIds = items.map((it) => it.productId)
         dispatch(removeItems(purchasedItemIds))
+        dispatch(removeVoucher())
+        dispatch(removeShippingAddress())
+        dispatch(removePaymentMethod())
         navigate('/orders')
       }
     } catch {
