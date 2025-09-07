@@ -56,6 +56,14 @@ export const updateOrderStatus = async (orderId, updateData) => {
   return res.data
 }
 
+export const updateOrderPaymentStatus = async (orderId, updateData) => {
+  const res = await axiosInstance.put(
+    `${ORDER_PREFIX}/admin/update-payment/${orderId}`,
+    updateData
+  )
+  return res.data
+}
+
 export const markOrderPaid = async (orderId) => {
   const res = await axiosInstance.post(
     `${ORDER_PREFIX}/admin/mark-paid/${orderId}`

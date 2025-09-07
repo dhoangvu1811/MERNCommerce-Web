@@ -21,10 +21,17 @@ import {
   Paper,
   Stack,
   Avatar,
-  DialogContentText
+  DialogContentText,
+  FormControl,
+  Select,
+  MenuItem,
+  InputLabel
 } from '@mui/material'
 import { formatPrice, formatDate } from '../../../utils/formatUtils'
-import { getOrderStatusConfig } from '../../../utils/orderConstants'
+import {
+  getOrderStatusConfig,
+  ORDER_STATUS
+} from '../../../utils/orderConstants'
 import { getAdminOrderDetails } from '../../../apis/orderApi'
 
 const OrderDetailsDialog = ({
@@ -32,12 +39,15 @@ const OrderDetailsDialog = ({
   onClose,
   selectedOrder,
   onPrint,
-  onMarkOrderPaid
+  onMarkOrderPaid,
+  onUpdateOrderStatus
 }) => {
   const [orderDetails, setOrderDetails] = useState(null)
   const [loading, setLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState(false)
+  const [newStatus, setNewStatus] = useState('')
+  const [showStatusUpdate, setShowStatusUpdate] = useState(false)
 
   // Load detailed order information when dialog opens
   useEffect(() => {
@@ -79,16 +89,108 @@ const OrderDetailsDialog = ({
     if (!order?._id) return
 
     setActionLoading(true)
-    await onMarkOrderPaid(order._id)
-    // Reload order details to get updated status
-    await loadOrderDetails(order._id)
-    setActionLoading(false)
-    setConfirmDialog(false)
+    try {
+      const success = await onMarkOrderPaid(order._id)
+      if (success) {
+        // Only reload if mark paid was successful
+        await loadOrderDetails(order._id)
+      }
+    } catch {
+      // Error is already handled by axiosConfig.js and shown via toast
+      // No need to log here as it's already handled centrally
+    } finally {
+      // Always reset UI state to prevent stuck UI
+      setActionLoading(false)
+      setConfirmDialog(false)
+    }
   }
 
   // Handle close confirm dialog
   const handleCloseConfirmDialog = () => {
     setConfirmDialog(false)
+  }
+
+  // Handle status update
+  const handleStatusUpdate = () => {
+    setNewStatus(order?.status || '')
+    setShowStatusUpdate(true)
+  }
+
+  const handleStatusChange = (event) => {
+    setNewStatus(event.target.value)
+  }
+
+  const handleConfirmStatusUpdate = async () => {
+    if (!order?._id || !newStatus || newStatus === order.status) {
+      setShowStatusUpdate(false)
+      return
+    }
+
+    setActionLoading(true)
+    try {
+      const success = await onUpdateOrderStatus(order._id, {
+        status: newStatus
+      })
+      if (success) {
+        // Only reload if update was successful
+        await loadOrderDetails(order._id)
+      }
+    } catch {
+      // Error is already handled by axiosConfig.js and shown via toast
+      // No need to log here as it's already handled centrally
+    } finally {
+      // Always reset UI state to prevent stuck UI
+      setActionLoading(false)
+      setShowStatusUpdate(false)
+    }
+  }
+
+  const handleCancelStatusUpdate = () => {
+    setShowStatusUpdate(false)
+    setNewStatus('')
+  }
+
+  // Get available status options for admin
+  const getStatusOptions = () => {
+    const allStatuses = [
+      { value: ORDER_STATUS.PENDING, label: 'Đang chờ' },
+      { value: ORDER_STATUS.CONFIRMED, label: 'Đã xác nhận' },
+      { value: ORDER_STATUS.PROCESSING, label: 'Đang xử lý' },
+      { value: ORDER_STATUS.PACKED, label: 'Đã đóng gói' },
+      { value: ORDER_STATUS.SHIPPED, label: 'Đang giao hàng' },
+      { value: ORDER_STATUS.DELIVERED, label: 'Đã giao' },
+      { value: ORDER_STATUS.COMPLETED, label: 'Hoàn thành' },
+      { value: ORDER_STATUS.CANCELLED, label: 'Đã hủy' },
+      { value: ORDER_STATUS.RETURNED, label: 'Trả hàng' },
+      { value: ORDER_STATUS.REFUNDED, label: 'Đã hoàn tiền' }
+    ]
+
+    // Filter out current status and invalid transitions
+    return allStatuses.filter((status) => {
+      const current = order?.status
+      if (status.value === current) return false
+
+      // Don't allow changing from terminal states
+      if ([ORDER_STATUS.COMPLETED, ORDER_STATUS.REFUNDED].includes(current)) {
+        return false
+      }
+
+      // Don't allow backward progression for normal flow
+      if (
+        current === ORDER_STATUS.DELIVERED &&
+        [
+          ORDER_STATUS.PENDING,
+          ORDER_STATUS.CONFIRMED,
+          ORDER_STATUS.PROCESSING,
+          ORDER_STATUS.PACKED,
+          ORDER_STATUS.SHIPPED
+        ].includes(status.value)
+      ) {
+        return false
+      }
+
+      return true
+    })
   }
 
   const order = orderDetails || selectedOrder
@@ -457,6 +559,20 @@ const OrderDetailsDialog = ({
             Đóng
           </Button>
 
+          {/* Button cập nhật trạng thái đơn hàng */}
+          {order &&
+            order.status !== ORDER_STATUS.COMPLETED &&
+            order.status !== ORDER_STATUS.REFUNDED && (
+              <Button
+                onClick={handleStatusUpdate}
+                color='info'
+                variant='outlined'
+                disabled={!order || actionLoading}
+              >
+                Cập nhật trạng thái
+              </Button>
+            )}
+
           {/* Chỉ hiển thị button đánh dấu đã thanh toán nếu chưa thanh toán và chưa hủy */}
           {order &&
             order.paymentStatus !== 'PAID' &&
@@ -510,6 +626,49 @@ const OrderDetailsDialog = ({
             startIcon={actionLoading ? <CircularProgress size={20} /> : null}
           >
             {actionLoading ? 'Đang xử lý...' : 'Xác nhận'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Status Update Dialog */}
+      <Dialog
+        open={showStatusUpdate}
+        onClose={handleCancelStatusUpdate}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Cập nhật trạng thái đơn hàng</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            Thay đổi trạng thái đơn hàng #{order?.orderCode || order?._id}
+          </DialogContentText>
+          <FormControl fullWidth>
+            <InputLabel>Trạng thái mới</InputLabel>
+            <Select
+              value={newStatus}
+              label='Trạng thái mới'
+              onChange={handleStatusChange}
+            >
+              {getStatusOptions().map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelStatusUpdate} color='inherit'>
+            Hủy
+          </Button>
+          <Button
+            onClick={handleConfirmStatusUpdate}
+            color='primary'
+            variant='contained'
+            disabled={actionLoading || !newStatus}
+            startIcon={actionLoading ? <CircularProgress size={20} /> : null}
+          >
+            {actionLoading ? 'Đang xử lý...' : 'Cập nhật'}
           </Button>
         </DialogActions>
       </Dialog>

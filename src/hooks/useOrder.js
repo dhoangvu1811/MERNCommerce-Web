@@ -1,6 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { toast } from 'react-toastify'
-import { getAllOrders, markOrderPaid } from '../apis/orderApi'
+import {
+  getAllOrders,
+  markOrderPaid,
+  updateOrderStatus
+} from '../apis/orderApi'
 
 const useOrder = () => {
   const [orders, setOrders] = useState([])
@@ -109,16 +113,42 @@ const useOrder = () => {
 
   // Handle mark order as paid
   const handleMarkOrderPaid = async (orderId) => {
-    setLoading(true)
-    const response = await markOrderPaid(orderId)
+    try {
+      setLoading(true)
+      const response = await markOrderPaid(orderId)
 
-    if (response.code === 200) {
-      // Refresh orders list to get updated data
-      refreshOrders()
-      toast.success('Đã đánh dấu đơn hàng đã thanh toán thành công')
+      if (response.code === 200) {
+        // Refresh orders list to get updated data
+        refreshOrders()
+        toast.success('Đã đánh dấu đơn hàng đã thanh toán thành công')
+        return true // Indicate success
+      } else {
+        // Handle non-200 response
+        throw new Error('Failed to mark order as paid')
+      }
+    } finally {
+      setLoading(false)
     }
+  }
 
-    setLoading(false)
+  // Handle update order status
+  const handleUpdateOrderStatus = async (orderId, updateData) => {
+    try {
+      setLoading(true)
+      const response = await updateOrderStatus(orderId, updateData)
+
+      if (response.code === 200) {
+        // Refresh orders list to get updated data
+        refreshOrders()
+        toast.success('Đã cập nhật trạng thái đơn hàng thành công')
+        return true // Indicate success
+      } else {
+        // Handle non-200 response
+        throw new Error('Failed to update order status')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   return {
@@ -136,7 +166,8 @@ const useOrder = () => {
     handlePageSizeChange,
     handleFilterChange,
     refreshOrders,
-    handleMarkOrderPaid
+    handleMarkOrderPaid,
+    handleUpdateOrderStatus
   }
 }
 
