@@ -21,7 +21,8 @@ const OrderTable = () => {
     handleSearch,
     handlePageChange,
     handlePageSizeChange,
-    handleMarkOrderPaid
+    handleMarkOrderPaid,
+    handleUpdateOrderStatus
   } = useOrder()
 
   // Get filtered orders using the hook
@@ -83,6 +84,7 @@ const OrderTable = () => {
         selectedOrder={selectedOrder}
         onPrint={handlePrint}
         onMarkOrderPaid={handleMarkOrderPaid}
+        onUpdateOrderStatus={handleUpdateOrderStatus}
       />
     </Box>
   )
