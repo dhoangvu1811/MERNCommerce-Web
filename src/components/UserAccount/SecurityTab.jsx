@@ -1,5 +1,6 @@
+/* eslint-disable indent */
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useForm, Controller } from 'react-hook-form'
 import { updatePassword } from '~/redux/slices/userSlice'
 import {
@@ -56,6 +57,10 @@ const PasswordField = ({
 
 const SecurityTab = () => {
   const dispatch = useDispatch()
+  const currentUser = useSelector((state) => state.auth.currentUser)
+
+  // Check if user is Google OAuth user (has emailVerified: true)
+  const isGoogleUser = currentUser?.emailVerified === true
 
   const [showPasswords, setShowPasswords] = useState({
     currentPassword: false,
@@ -81,13 +86,20 @@ const SecurityTab = () => {
 
   const onSubmit = async (data) => {
     try {
-      await dispatch(
-        updatePassword({
-          currentPassword: data.currentPassword,
-          newPassword: data.newPassword,
-          confirmPassword: data.confirmPassword
-        })
-      ).unwrap()
+      // For Google users, don't send currentPassword
+      const passwordData = isGoogleUser
+        ? {
+            newPassword: data.newPassword,
+            confirmPassword: data.confirmPassword,
+            isGoogleUser: true
+          }
+        : {
+            currentPassword: data.currentPassword,
+            newPassword: data.newPassword,
+            confirmPassword: data.confirmPassword
+          }
+
+      await dispatch(updatePassword(passwordData)).unwrap()
 
       // Reset form sau khi thành công
       reset()
@@ -105,28 +117,42 @@ const SecurityTab = () => {
 
       <Divider sx={{ mb: 3 }} />
 
+      {/* Information message for Google users */}
+      {isGoogleUser && (
+        <Box sx={{ mb: 3, p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
+          <Typography variant='body2' color='info.dark'>
+            Bạn đã đăng nhập bằng Google, không cần nhập mật khẩu hiện tại.
+          </Typography>
+        </Box>
+      )}
+
       <Box component='form' onSubmit={handleSubmit(onSubmit)} noValidate>
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12 }}>
-            <Controller
-              name='currentPassword'
-              control={control}
-              rules={{ required: FIELD_REQUIRED_MESSAGE }}
-              render={({ field, fieldState: { error } }) => (
-                <PasswordField
-                  {...field}
-                  label='Current Password'
-                  error={!!error}
-                  helperText={error?.message}
-                  showPassword={showPasswords.currentPassword}
-                  togglePasswordVisibility={() =>
-                    togglePasswordVisibility('currentPassword')
-                  }
-                  autoComplete='current-password'
-                />
-              )}
-            />
-          </Grid>
+          {/* Only show Current Password field for normal users (not Google OAuth users) */}
+          {!isGoogleUser && (
+            <Grid size={{ xs: 12 }}>
+              <Controller
+                name='currentPassword'
+                control={control}
+                rules={{
+                  required: !isGoogleUser ? FIELD_REQUIRED_MESSAGE : false
+                }}
+                render={({ field, fieldState: { error } }) => (
+                  <PasswordField
+                    {...field}
+                    label='Current Password'
+                    error={!!error}
+                    helperText={error?.message}
+                    showPassword={showPasswords.currentPassword}
+                    togglePasswordVisibility={() =>
+                      togglePasswordVisibility('currentPassword')
+                    }
+                    autoComplete='current-password'
+                  />
+                )}
+              />
+            </Grid>
+          )}
 
           <Grid size={{ xs: 12 }}>
             <Controller
@@ -144,9 +170,7 @@ const SecurityTab = () => {
                   {...field}
                   label='New Password'
                   error={!!error}
-                  helperText={
-                    error?.message || PASSWORD_RULE_MESSAGE
-                  }
+                  helperText={error?.message || PASSWORD_RULE_MESSAGE}
                   showPassword={showPasswords.newPassword}
                   togglePasswordVisibility={() =>
                     togglePasswordVisibility('newPassword')
