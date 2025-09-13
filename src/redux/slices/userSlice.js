@@ -60,7 +60,7 @@ export const getCurrentUser = createAsyncThunk(
   async (_, { dispatch }) => {
     const data = await userApi.getCurrentUser()
     // Sync với authSlice
-    dispatch(setUser(data.data))
+    dispatch(setUser(data.data.user))
     return data
   }
 )

@@ -11,6 +11,8 @@ import CartPage from './pages/CartPage'
 import SupportCenter from './pages/SupportCenter'
 import MyOrders from './pages/MyOrders'
 import Unauthorized from './pages/Unauthorized'
+import OAuthSuccess from './pages/OAuthSuccess'
+import OAuthFailure from './pages/OAuthFailure'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import AdminRouteWrapper from './components/auth/AdminRouteWrapper'
 import MainLayout from './layouts/MainLayout'
@@ -58,6 +60,8 @@ function AppContent() {
       <Routes>
         {/* Standalone Routes */}
         <Route path='/unauthorized' element={<Unauthorized />} />
+        <Route path='/auth/success' element={<OAuthSuccess />} />
+        <Route path='/auth/failure' element={<OAuthFailure />} />
 
         {/* Admin Route - No Header/Footer, Protected by AdminRouteWrapper */}
         <Route

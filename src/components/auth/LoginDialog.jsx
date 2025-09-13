@@ -11,7 +11,8 @@ import {
   Typography,
   IconButton,
   Box,
-  Stack
+  Stack,
+  Divider
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import EmailOutlined from '@mui/icons-material/EmailOutlined'
@@ -24,6 +25,11 @@ import {
   PASSWORD_RULE,
   PASSWORD_RULE_MESSAGE
 } from '../../utils/validators'
+
+// Import SVG icons as URLs
+import GoogleIconUrl from '../../assets/icons/google.svg'
+import FacebookIconUrl from '../../assets/icons/facebook.svg'
+import { API_CONFIG } from '~/utils/constants'
 
 const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
   const dispatch = useDispatch()
@@ -59,6 +65,18 @@ const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleGoogleLogin = () => {
+    // Redirect to Google OAuth (no popup)
+    window.location.href = `${
+      API_CONFIG.BASE_URL
+    }/users/auth/google`
+  }
+
+  const handleFacebookLogin = () => {
+    // TODO: Implement Facebook OAuth login
+    // Placeholder for future implementation
   }
 
   return (
@@ -105,6 +123,76 @@ const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
       <Box component='form' onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent sx={{ p: 3, pt: 4, pb: 4 }}>
           <Stack spacing={3}>
+            {/* Social Login Buttons */}
+            <Stack spacing={2}>
+              <Button
+                variant='outlined'
+                fullWidth
+                onClick={handleGoogleLogin}
+                startIcon={
+                  <Box
+                    component='img'
+                    src={GoogleIconUrl}
+                    sx={{ width: 20, height: 20 }}
+                  />
+                }
+                sx={{
+                  py: 1.5,
+                  borderColor: '#dadce0',
+                  color: '#3c4043',
+                  '&:hover': {
+                    borderColor: '#dadce0',
+                    backgroundColor: '#f8f9fa'
+                  }
+                }}
+              >
+                Đăng nhập bằng Google
+              </Button>
+
+              <Button
+                variant='outlined'
+                fullWidth
+                onClick={handleFacebookLogin}
+                startIcon={
+                  <Box
+                    component='img'
+                    src={FacebookIconUrl}
+                    sx={{ width: 20, height: 20 }}
+                  />
+                }
+                sx={{
+                  py: 1.5,
+                  borderColor: '#3c5a9a',
+                  color: '#3c5a9a',
+                  '&:hover': {
+                    borderColor: '#3c5a9a',
+                    backgroundColor: '#f0f2f5'
+                  }
+                }}
+              >
+                Đăng nhập bằng Facebook
+              </Button>
+            </Stack>
+
+            {/* Divider */}
+            <Box sx={{ position: 'relative', textAlign: 'center' }}>
+              <Divider sx={{ my: 2 }} />
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  backgroundColor: 'background.paper',
+                  px: 2
+                }}
+              >
+                Hoặc
+              </Typography>
+            </Box>
+
             <AuthFormField
               name='email'
               label='Email'
