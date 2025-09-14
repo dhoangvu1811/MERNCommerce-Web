@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useForm, Controller } from 'react-hook-form'
-import { updatePassword } from '~/redux/slices/userSlice'
+import { getCurrentUser, updatePassword } from '~/redux/slices/userSlice'
 import {
   Box,
   TextField,
@@ -60,7 +60,7 @@ const SecurityTab = () => {
   const currentUser = useSelector((state) => state.auth.currentUser)
 
   // Check if user is Google OAuth user (has emailVerified: true)
-  const isGoogleUser = currentUser?.emailVerified === true
+  const isGoogleUser = currentUser?.typeAccount === 'GOOGLE'
 
   const [showPasswords, setShowPasswords] = useState({
     currentPassword: false,
@@ -90,8 +90,7 @@ const SecurityTab = () => {
       const passwordData = isGoogleUser
         ? {
             newPassword: data.newPassword,
-            confirmPassword: data.confirmPassword,
-            isGoogleUser: true
+            confirmPassword: data.confirmPassword
           }
         : {
             currentPassword: data.currentPassword,
@@ -100,6 +99,7 @@ const SecurityTab = () => {
           }
 
       await dispatch(updatePassword(passwordData)).unwrap()
+      await dispatch(getCurrentUser()).unwrap()
 
       // Reset form sau khi thành công
       reset()

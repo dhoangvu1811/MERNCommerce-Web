@@ -12,7 +12,12 @@ import {
   Avatar,
   IconButton,
   Divider,
-  Paper
+  Paper,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  FormHelperText
 } from '@mui/material'
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera'
 import {
@@ -35,7 +40,9 @@ const ProfileTab = () => {
       lastName: '',
       email: '',
       phone: '',
-      address: ''
+      address: '',
+      gender: '',
+      dateOfBirth: ''
     },
     mode: 'onChange'
   })
@@ -53,6 +60,11 @@ const ProfileTab = () => {
       setValue('email', user.email || '')
       setValue('phone', user.phone || '')
       setValue('address', user.address || '')
+      setValue('gender', user.gender || '')
+      setValue(
+        'dateOfBirth',
+        user.dateOfBirth ? user.dateOfBirth.split('T')[0] : ''
+      )
       setAvatar(user.avatar || '/src/assets/avatar-placeholder.jpg')
     }
   }, [user, setValue])
@@ -192,6 +204,57 @@ const ProfileTab = () => {
                       helperText={error?.message || ' '}
                       fullWidth
                       required
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name='gender'
+                  control={control}
+                  rules={
+                    {
+                      // No validation rules for gender - it's optional
+                    }
+                  }
+                  render={({ field, fieldState: { error } }) => (
+                    <FormControl fullWidth error={!!error}>
+                      <InputLabel>Gender</InputLabel>
+                      <Select {...field} label='Gender'>
+                        <MenuItem value=''>
+                          <em>Select Gender</em>
+                        </MenuItem>
+                        <MenuItem value='male'>Male</MenuItem>
+                        <MenuItem value='female'>Female</MenuItem>
+                        <MenuItem value='other'>Other</MenuItem>
+                      </Select>
+                      <FormHelperText>{error?.message || ' '}</FormHelperText>
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name='dateOfBirth'
+                  control={control}
+                  rules={
+                    {
+                      // No validation rules for dateOfBirth - it's optional
+                    }
+                  }
+                  render={({ field, fieldState: { error } }) => (
+                    <TextField
+                      {...field}
+                      label='Date of Birth'
+                      type='date'
+                      error={!!error}
+                      helperText={error?.message || ' '}
+                      fullWidth
+                      InputLabelProps={{
+                        shrink: true
+                      }}
                     />
                   )}
                 />
