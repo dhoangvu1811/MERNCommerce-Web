@@ -44,10 +44,14 @@ const OAuthFailure = () => {
     navigate('/', { replace: true })
   }
 
-  const handleRetry = () => {
-    // Direct redirect to Google OAuth (no popup) using unified config
-    const base = API_CONFIG.BASE_URL || ''
-    window.location.href = `${base}/users/auth/google`
+  const handleRetryGoogle = () => {
+    // Direct redirect to Google OAuth
+    window.location.href = `${API_CONFIG.BASE_URL}/users/auth/google`
+  }
+
+  const handleRetryFacebook = () => {
+    // Direct redirect to Facebook OAuth
+    window.location.href = `${API_CONFIG.BASE_URL}/users/auth/facebook`
   }
 
   return (
@@ -93,16 +97,39 @@ const OAuthFailure = () => {
             Mã lỗi: <code>{error}</code>
           </Typography>
 
-          <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
-            <Button
-              variant='contained'
-              color='primary'
-              startIcon={<RefreshIcon />}
-              onClick={handleRetry}
-              fullWidth
+          <Box sx={{ display: 'flex', gap: 1.5, flexDirection: 'column' }}>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              textAlign='center'
+              sx={{ mb: 1 }}
             >
-              Thử lại đăng nhập Google
-            </Button>
+              Thử lại với:
+            </Typography>
+
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant='contained'
+                color='primary'
+                startIcon={<RefreshIcon />}
+                onClick={handleRetryGoogle}
+                fullWidth
+                size='small'
+              >
+                Google
+              </Button>
+
+              <Button
+                variant='contained'
+                color='primary'
+                startIcon={<RefreshIcon />}
+                onClick={handleRetryFacebook}
+                fullWidth
+                size='small'
+              >
+                Facebook
+              </Button>
+            </Box>
 
             <Button
               variant='outlined'

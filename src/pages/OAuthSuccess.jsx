@@ -20,7 +20,7 @@ const OAuthSuccess = () => {
         await dispatch(getCurrentUser()).unwrap()
 
         // Show success message
-        toast.success('Đăng nhập Google thành công!')
+        toast.success('Đăng nhập thành công!')
 
         // Redirect to home page
         navigate('/', { replace: true })
@@ -66,7 +66,7 @@ const OAuthSuccess = () => {
         </Typography>
 
         <Typography variant='body1' color='text.secondary' sx={{ mb: 2 }}>
-          Bạn đã đăng nhập Google thành công. Đang chuyển hướng...
+          Bạn đã đăng nhập thành công. Đang chuyển hướng...
         </Typography>
 
         <CircularProgress color='success' />

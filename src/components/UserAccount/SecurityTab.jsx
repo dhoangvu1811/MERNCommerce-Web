@@ -59,8 +59,12 @@ const SecurityTab = () => {
   const dispatch = useDispatch()
   const currentUser = useSelector((state) => state.auth.currentUser)
 
-  // Check if user is Google OAuth user (has emailVerified: true)
-  const isGoogleUser = currentUser?.typeAccount === 'GOOGLE'
+  // Check if user is OAuth user (Google or Facebook)
+  const isOAuthUser =
+    currentUser?.typeAccount === 'GOOGLE' ||
+    currentUser?.typeAccount === 'FACEBOOK'
+  const oauthProvider =
+    currentUser?.typeAccount === 'GOOGLE' ? 'Google' : 'Facebook'
 
   const [showPasswords, setShowPasswords] = useState({
     currentPassword: false,
@@ -86,8 +90,8 @@ const SecurityTab = () => {
 
   const onSubmit = async (data) => {
     try {
-      // For Google users, don't send currentPassword
-      const passwordData = isGoogleUser
+      // For OAuth users, don't send currentPassword
+      const passwordData = isOAuthUser
         ? {
             newPassword: data.newPassword,
             confirmPassword: data.confirmPassword
@@ -117,25 +121,26 @@ const SecurityTab = () => {
 
       <Divider sx={{ mb: 3 }} />
 
-      {/* Information message for Google users */}
-      {isGoogleUser && (
+      {/* Information message for OAuth users */}
+      {isOAuthUser && (
         <Box sx={{ mb: 3, p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
           <Typography variant='body2' color='info.dark'>
-            Bạn đã đăng nhập bằng Google, không cần nhập mật khẩu hiện tại.
+            Bạn đã đăng nhập bằng {oauthProvider}, không cần nhập mật khẩu hiện
+            tại.
           </Typography>
         </Box>
       )}
 
       <Box component='form' onSubmit={handleSubmit(onSubmit)} noValidate>
         <Grid container spacing={3}>
-          {/* Only show Current Password field for normal users (not Google OAuth users) */}
-          {!isGoogleUser && (
+          {/* Only show Current Password field for normal users (not OAuth users) */}
+          {!isOAuthUser && (
             <Grid size={{ xs: 12 }}>
               <Controller
                 name='currentPassword'
                 control={control}
                 rules={{
-                  required: !isGoogleUser ? FIELD_REQUIRED_MESSAGE : false
+                  required: !isOAuthUser ? FIELD_REQUIRED_MESSAGE : false
                 }}
                 render={({ field, fieldState: { error } }) => (
                   <PasswordField

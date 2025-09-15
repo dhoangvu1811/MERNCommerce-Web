@@ -69,14 +69,11 @@ const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
 
   const handleGoogleLogin = () => {
     // Redirect to Google OAuth (no popup)
-    window.location.href = `${
-      API_CONFIG.BASE_URL
-    }/users/auth/google`
+    window.location.href = `${API_CONFIG.BASE_URL}/users/auth/google`
   }
 
   const handleFacebookLogin = () => {
-    // TODO: Implement Facebook OAuth login
-    // Placeholder for future implementation
+    window.location.href = `${API_CONFIG.BASE_URL}/users/auth/facebook`
   }
 
   return (
@@ -125,6 +122,15 @@ const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
           <Stack spacing={3}>
             {/* Social Login Buttons */}
             <Stack spacing={2}>
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                textAlign='center'
+                sx={{ mb: 1 }}
+              >
+                Đăng nhập nhanh với tài khoản mạng xã hội
+              </Typography>
+
               <Button
                 variant='outlined'
                 fullWidth
@@ -140,9 +146,12 @@ const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
                   py: 1.5,
                   borderColor: '#dadce0',
                   color: '#3c4043',
+                  fontWeight: 500,
                   '&:hover': {
                     borderColor: '#dadce0',
-                    backgroundColor: '#f8f9fa'
+                    backgroundColor: '#f8f9fa',
+                    boxShadow:
+                      '0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15)'
                   }
                 }}
               >
@@ -162,11 +171,13 @@ const LoginDialog = ({ open, onClose, onSuccess, onSwitchToRegister }) => {
                 }
                 sx={{
                   py: 1.5,
-                  borderColor: '#3c5a9a',
-                  color: '#3c5a9a',
+                  borderColor: '#1877f2',
+                  color: '#1877f2',
+                  fontWeight: 500,
                   '&:hover': {
-                    borderColor: '#3c5a9a',
-                    backgroundColor: '#f0f2f5'
+                    borderColor: '#166fe5',
+                    backgroundColor: '#f0f2f5',
+                    color: '#166fe5'
                   }
                 }}
               >
