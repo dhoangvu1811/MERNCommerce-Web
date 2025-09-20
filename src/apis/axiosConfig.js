@@ -29,6 +29,9 @@ const dispatchLogout = () => {
         {},
         { withCredentials: true }
       )
+      .then(() => {
+        toast.info('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại')
+      })
       .catch(() => {
         // Silent error - không cần show error nếu logout API fail
         // Vì user đã bị logout tự động do token hết hạn
