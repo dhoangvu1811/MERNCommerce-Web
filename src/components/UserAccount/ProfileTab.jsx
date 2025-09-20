@@ -3,6 +3,8 @@ import { useDispatch } from 'react-redux'
 import { useForm, Controller } from 'react-hook-form'
 import { useAuth } from '~/hooks/useAuth'
 import { updateCurrentUser } from '~/redux/slices/userSlice'
+import { userApi } from '~/apis/userApi'
+import { toast } from 'react-toastify'
 import {
   Box,
   TextField,
@@ -17,9 +19,12 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  FormHelperText
+  FormHelperText,
+  Chip
 } from '@mui/material'
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera'
+import VerifiedIcon from '@mui/icons-material/Verified'
+import EmailIcon from '@mui/icons-material/Email'
 import {
   FIELD_REQUIRED_MESSAGE,
   EMAIL_RULE,
@@ -32,9 +37,10 @@ const ProfileTab = () => {
   const [avatar, setAvatar] = useState('')
   const [avatarFile, setAvatarFile] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
 
   // Profile form
-  const { control, handleSubmit, setValue } = useForm({
+  const { control, handleSubmit, setValue, getValues } = useForm({
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -79,6 +85,28 @@ const ProfileTab = () => {
         setAvatar(e.target.result)
       }
       fileReader.readAsDataURL(file)
+    }
+  }
+
+  const handleSendVerificationEmail = async () => {
+    try {
+      setIsVerifying(true)
+      // Lấy email từ form hoặc user object
+      const currentEmail = getValues('email') || user?.email
+
+      if (!currentEmail) {
+        toast.error('Không tìm thấy email để gửi xác minh.')
+        return
+      }
+
+      await userApi.sendVerificationEmail(currentEmail)
+      toast.success(
+        'Email xác nhận đã được gửi! Vui lòng kiểm tra hộp thư của bạn.'
+      )
+    } catch {
+      toast.error('Gửi email xác nhận thất bại. Vui lòng thử lại.')
+    } finally {
+      setIsVerifying(false)
     }
   }
 
@@ -272,15 +300,46 @@ const ProfileTab = () => {
                     }
                   }}
                   render={({ field, fieldState: { error } }) => (
-                    <TextField
-                      {...field}
-                      label='Email'
-                      type='email'
-                      error={!!error}
-                      helperText={error?.message || ' '}
-                      fullWidth
-                      required
-                    />
+                    <Box>
+                      <Box display='flex' alignItems='center' gap={1}>
+                        <TextField
+                          {...field}
+                          label='Email'
+                          type='email'
+                          error={!!error}
+                          helperText={error?.message || ' '}
+                          fullWidth
+                          required
+                        />
+                        <Box
+                          display='flex'
+                          flexDirection='column'
+                          alignItems='center'
+                          gap={1}
+                        >
+                          {user?.emailVerified ? (
+                            <Chip
+                              icon={<VerifiedIcon />}
+                              label='Đã xác minh'
+                              color='success'
+                              variant='filled'
+                              size='small'
+                            />
+                          ) : (
+                            <Button
+                              variant='outlined'
+                              size='small'
+                              onClick={handleSendVerificationEmail}
+                              disabled={isVerifying}
+                              startIcon={<EmailIcon />}
+                              sx={{ minWidth: '140px', whiteSpace: 'nowrap' }}
+                            >
+                              {isVerifying ? 'Đang gửi...' : 'Xác minh Email'}
+                            </Button>
+                          )}
+                        </Box>
+                      </Box>
+                    </Box>
                   )}
                 />
               </Grid>
