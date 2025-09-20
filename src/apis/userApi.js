@@ -85,7 +85,8 @@ export const userApi = {
     const queryString = new URLSearchParams()
 
     if (params.page) queryString.append('page', params.page)
-    if (params.itemsPerPage) queryString.append('itemsPerPage', params.itemsPerPage)
+    if (params.itemsPerPage)
+      queryString.append('itemsPerPage', params.itemsPerPage)
     if (params.search) queryString.append('search', params.search)
     if (params.role) queryString.append('role', params.role)
     if (params.status) queryString.append('status', params.status)
@@ -121,6 +122,17 @@ export const userApi = {
     const response = await axiosInstance.post('/users/delete-multiple', {
       userIds
     })
+    return response.data
+  },
+
+  // User activation/deactivation routes - chỉ admin mới có quyền
+  activateUser: async (userId) => {
+    const response = await axiosInstance.patch(`/users/activate/${userId}`)
+    return response.data
+  },
+
+  deactivateUser: async (userId) => {
+    const response = await axiosInstance.patch(`/users/deactivate/${userId}`)
     return response.data
   }
 }

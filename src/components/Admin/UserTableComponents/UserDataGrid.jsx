@@ -11,18 +11,23 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  Tooltip
 } from '@mui/material'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+import PersonOffIcon from '@mui/icons-material/PersonOff'
+import PersonAddIcon from '@mui/icons-material/PersonAdd'
 
 const UserDataGrid = ({
   users,
   onEdit,
   onDelete,
   onBulkDelete,
+  onActivateUser,
+  onDeactivateUser,
   pagination,
   onPageChange,
   onPageSizeChange,
@@ -110,28 +115,80 @@ const UserDataGrid = ({
       )
     },
     {
+      field: 'isActive',
+      headerName: 'Trạng thái',
+      width: 120,
+      renderCell: (params) => {
+        return (
+          <Chip
+            label={params.value ? 'Đang hoạt động' : 'Vô hiệu hóa'}
+            color={params.value ? 'success' : 'error'}
+            variant={params.value ? 'filled' : 'outlined'}
+            size='small'
+          />
+        )
+      }
+    },
+    {
       field: 'actions',
       headerName: 'Thao tác',
-      width: 120,
+      width: 180,
       sortable: false,
       filterable: false,
       disableExport: true,
       renderCell: (params) => (
         <Box>
-          <IconButton
-            size='small'
-            color='primary'
-            onClick={() => onEdit(params.row._id || params.row.id)}
-          >
-            <EditIcon fontSize='small' />
-          </IconButton>
-          <IconButton
-            size='small'
-            color='error'
-            onClick={() => onDelete(params.row._id || params.row.id)}
-          >
-            <DeleteIcon fontSize='small' />
-          </IconButton>
+          <Tooltip title='Chỉnh sửa người dùng'>
+            <IconButton
+              size='small'
+              color='primary'
+              onClick={() => onEdit(params.row._id || params.row.id)}
+            >
+              <EditIcon fontSize='small' />
+            </IconButton>
+          </Tooltip>
+
+          {params.row.isActive ? (
+            <Tooltip title='Vô hiệu hóa tài khoản'>
+              <IconButton
+                size='small'
+                color='warning'
+                onClick={() =>
+                  onDeactivateUser(
+                    params.row._id || params.row.id,
+                    params.row.name
+                  )
+                }
+              >
+                <PersonOffIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Tooltip title='Kích hoạt tài khoản'>
+              <IconButton
+                size='small'
+                color='success'
+                onClick={() =>
+                  onActivateUser(
+                    params.row._id || params.row.id,
+                    params.row.name
+                  )
+                }
+              >
+                <PersonAddIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
+          )}
+
+          <Tooltip title='Xóa người dùng'>
+            <IconButton
+              size='small'
+              color='error'
+              onClick={() => onDelete(params.row._id || params.row.id)}
+            >
+              <DeleteIcon fontSize='small' />
+            </IconButton>
+          </Tooltip>
         </Box>
       )
     }

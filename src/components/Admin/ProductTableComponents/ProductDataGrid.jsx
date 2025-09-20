@@ -176,20 +176,24 @@ const ProductDataGrid = ({
       disableExport: true,
       renderCell: (params) => (
         <Box>
-          <IconButton
-            size='small'
-            color='primary'
-            onClick={() => onEdit(params.row._id)}
-          >
-            <EditIcon fontSize='small' />
-          </IconButton>
-          <IconButton
-            size='small'
-            color='error'
-            onClick={() => onDelete(params.row._id)}
-          >
-            <DeleteIcon fontSize='small' />
-          </IconButton>
+          <Tooltip title='Chỉnh sửa sản phẩm'>
+            <IconButton
+              size='small'
+              color='primary'
+              onClick={() => onEdit(params.row._id)}
+            >
+              <EditIcon fontSize='small' />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title='Xóa sản phẩm'>
+            <IconButton
+              size='small'
+              color='error'
+              onClick={() => onDelete(params.row._id)}
+            >
+              <DeleteIcon fontSize='small' />
+            </IconButton>
+          </Tooltip>
         </Box>
       )
     }

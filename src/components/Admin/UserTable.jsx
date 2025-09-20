@@ -6,7 +6,8 @@ import {
   UserTableHeader,
   DeleteUserDialog,
   UserDataGrid,
-  UserFormDrawer
+  UserFormDrawer,
+  UserActivationDialog
 } from './UserTableComponents'
 import {
   getAllUsers,
@@ -19,6 +20,7 @@ import {
   clearUsers
 } from '../../redux/slices/userSlice'
 import { useUsers } from '../../hooks/useAuth'
+import { userApi } from '../../apis/userApi'
 
 const UserTable = () => {
   const dispatch = useDispatch()
@@ -35,6 +37,11 @@ const UserTable = () => {
   const [editingUser, setEditingUser] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+
+  // Activation/Deactivation dialog states
+  const [activationDialogOpen, setActivationDialogOpen] = useState(false)
+  const [userToToggle, setUserToToggle] = useState(null)
+  const [activationAction, setActivationAction] = useState('activate') // 'activate' hoặc 'deactivate'
 
   // Fetch users on component mount và khi thay đổi page hoặc search
   useEffect(() => {
@@ -188,6 +195,50 @@ const UserTable = () => {
     setAddDrawerOpen(false)
   }
 
+  // Handle user activation/deactivation
+  const handleActivateUser = async (userId, userName) => {
+    setUserToToggle({ id: userId, name: userName })
+    setActivationAction('activate')
+    setActivationDialogOpen(true)
+  }
+
+  const handleDeactivateUser = async (userId, userName) => {
+    setUserToToggle({ id: userId, name: userName })
+    setActivationAction('deactivate')
+    setActivationDialogOpen(true)
+  }
+
+  const handleActivationConfirm = async () => {
+    try {
+      setIsLoading(true)
+
+      if (activationAction === 'activate') {
+        await userApi.activateUser(userToToggle.id)
+      } else {
+        await userApi.deactivateUser(userToToggle.id)
+      }
+
+      setActivationDialogOpen(false)
+      setUserToToggle(null)
+
+      // Refresh users list
+      await dispatch(
+        getAllUsers({
+          page: currentPage,
+          itemsPerPage: pagination.itemsPerPage,
+          search: searchTerm.trim() || undefined
+        })
+      ).unwrap()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleActivationCancel = () => {
+    setActivationDialogOpen(false)
+    setUserToToggle(null)
+  }
+
   // Handle bulk delete
   const handleBulkDelete = async (selectedUserIds) => {
     if (selectedUserIds.length === 0) return
@@ -262,6 +313,8 @@ const UserTable = () => {
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
         onBulkDelete={handleBulkDelete}
+        onActivateUser={handleActivateUser}
+        onDeactivateUser={handleDeactivateUser}
         pagination={pagination}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
@@ -294,6 +347,16 @@ const UserTable = () => {
         user={null}
         title='Thêm người dùng mới'
         loading={isLoading}
+      />
+
+      {/* User Activation/Deactivation Dialog */}
+      <UserActivationDialog
+        open={activationDialogOpen}
+        onClose={handleActivationCancel}
+        onConfirm={handleActivationConfirm}
+        loading={isLoading}
+        action={activationAction}
+        userName={userToToggle?.name || ''}
       />
     </Box>
   )
