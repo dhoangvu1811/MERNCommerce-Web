@@ -13,6 +13,7 @@ import MyOrders from './pages/MyOrders'
 import Unauthorized from './pages/Unauthorized'
 import OAuthSuccess from './pages/OAuthSuccess'
 import OAuthFailure from './pages/OAuthFailure'
+import EmailVerification from './components/EmailVerification'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import AdminRouteWrapper from './components/auth/AdminRouteWrapper'
 import MainLayout from './layouts/MainLayout'
@@ -62,6 +63,7 @@ function AppContent() {
         <Route path='/unauthorized' element={<Unauthorized />} />
         <Route path='/auth/success' element={<OAuthSuccess />} />
         <Route path='/auth/failure' element={<OAuthFailure />} />
+        <Route path='/account/verification' element={<EmailVerification />} />
 
         {/* Admin Route - No Header/Footer, Protected by AdminRouteWrapper */}
         <Route

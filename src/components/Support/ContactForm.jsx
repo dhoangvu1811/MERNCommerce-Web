@@ -24,10 +24,7 @@ function ContactForm() {
   }
 
   return (
-    <Paper
-      elevation={0}
-      sx={{ p: 4, mt: 6, borderRadius: 3}}
-    >
+    <Paper elevation={0} sx={{ p: 4, mt: 6, borderRadius: 3 }}>
       <Typography
         variant='h5'
         sx={{ mb: 3, fontWeight: 'bold', textAlign: 'center' }}

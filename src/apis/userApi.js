@@ -134,6 +134,24 @@ export const userApi = {
   deactivateUser: async (userId) => {
     const response = await axiosInstance.patch(`/users/deactivate/${userId}`)
     return response.data
+  },
+
+  // Email verification routes
+  sendVerificationEmail: async (email) => {
+    const response = await axiosInstance.post(
+      '/users/send-verification-email',
+      {
+        email
+      }
+    )
+    return response.data
+  },
+
+  verifyUserAccount: async (email, token) => {
+    const response = await axiosInstance.get('/users/verify-account', {
+      params: { email, token }
+    })
+    return response.data
   }
 }
 
