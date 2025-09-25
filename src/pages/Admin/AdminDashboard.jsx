@@ -21,6 +21,7 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer'
 import PeopleIcon from '@mui/icons-material/People'
 import InventoryIcon from '@mui/icons-material/Inventory'
 import LocalShippingIcon from '@mui/icons-material/LocalShipping'
+import SecurityIcon from '@mui/icons-material/Security'
 import AdminHeader from '../../components/Admin/AdminHeader'
 
 // Import table components
@@ -28,6 +29,7 @@ import UserTable from '../../components/Admin/UserTable'
 import ProductTable from '../../components/Admin/ProductTable'
 import OrderTable from '../../components/Admin/OrderTable'
 import VoucherTable from '../../components/Admin/VoucherTable'
+import SessionTable from '../../components/Admin/SessionTable'
 
 // TabPanel component to render tab content
 function TabPanel(props) {
@@ -311,6 +313,11 @@ const AdminDashboard = () => {
               icon={<LocalOfferIcon />}
               iconPosition={isMobile ? 'top' : 'start'}
             />
+            <Tab
+              label={!isMobile && 'Quản lý sessions'}
+              icon={<SecurityIcon />}
+              iconPosition={isMobile ? 'top' : 'start'}
+            />
           </Tabs>
 
           <Box
@@ -332,6 +339,9 @@ const AdminDashboard = () => {
             </TabPanel>
             <TabPanel value={tabValue} index={3}>
               <VoucherTable />
+            </TabPanel>
+            <TabPanel value={tabValue} index={4}>
+              <SessionTable />
             </TabPanel>
           </Box>
         </Paper>
