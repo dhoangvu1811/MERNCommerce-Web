@@ -17,6 +17,7 @@ import {
   setShippingFee
 } from '~/redux/slices/orderSlice'
 import { useAuth } from '~/hooks/useAuth'
+import dayjs from 'dayjs'
 
 // Items sẽ lấy từ Redux order slice
 
@@ -240,7 +241,7 @@ function CartPage() {
       }
       dispatch(setCartShippingAddress(newAddress))
       toast.success('Đã cập nhật địa chỉ giao hàng.')
-      setAddressConfirmedAt(Date.now())
+      setAddressConfirmedAt(dayjs().valueOf())
     }
   }
 

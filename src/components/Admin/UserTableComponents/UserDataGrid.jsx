@@ -20,6 +20,11 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import PersonOffIcon from '@mui/icons-material/PersonOff'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
+import dayjs from 'dayjs'
+import 'dayjs/locale/vi'
+
+// Configure dayjs
+dayjs.locale('vi')
 
 const UserDataGrid = ({
   users,
@@ -85,8 +90,7 @@ const UserDataGrid = ({
       width: 120,
       renderCell: (params) => {
         if (!params.value) return ''
-        const date = new Date(params.value)
-        return date.toLocaleDateString('vi-VN')
+        return dayjs(params.value).format('DD/MM/YYYY')
       }
     },
     {

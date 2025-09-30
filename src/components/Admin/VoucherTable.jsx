@@ -15,6 +15,7 @@ import {
   deleteVoucher,
   deleteMultipleVouchers
 } from '../../apis/voucherApi'
+import dayjs from 'dayjs'
 
 const VoucherTable = () => {
   const [vouchers, setVouchers] = useState(vouchersMock)
@@ -192,7 +193,7 @@ const VoucherTable = () => {
     setVouchers((prev) =>
       prev.map((v) =>
         v._id === id
-          ? { ...v, isActive: !v.isActive, updatedAt: Date.now() }
+          ? { ...v, isActive: !v.isActive, updatedAt: dayjs().valueOf() }
           : v
       )
     )

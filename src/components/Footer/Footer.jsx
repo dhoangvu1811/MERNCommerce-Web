@@ -2,6 +2,7 @@ import { Box, Container, Grid, Typography, Divider, Link } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import ContactInfo from './ContactInfo'
 import SocialLinks from './SocialLinks'
+import dayjs from 'dayjs'
 
 function Footer() {
   return (
@@ -86,7 +87,7 @@ function Footer() {
           }}
         >
           <Typography variant='body2' color='text.secondary'>
-            &copy; {new Date().getFullYear()} MyShop. Tất cả quyền được bảo lưu.
+            &copy; {dayjs().year()} MyShop. Tất cả quyền được bảo lưu.
           </Typography>
           <Box>
             <Typography variant='body2' color='text.secondary'>

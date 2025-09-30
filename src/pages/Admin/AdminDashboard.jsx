@@ -13,6 +13,11 @@ import {
   CardContent,
   LinearProgress
 } from '@mui/material'
+import dayjs from 'dayjs'
+import 'dayjs/locale/vi'
+
+// Configure dayjs
+dayjs.locale('vi')
 import PersonIcon from '@mui/icons-material/Person'
 import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
@@ -74,7 +79,7 @@ const AdminDashboard = () => {
             Quản lý hệ thống
           </Typography>
           <Typography variant='body2' color='text.secondary'>
-            Hôm nay: {new Date().toLocaleDateString('vi-VN')}
+            Hôm nay: {dayjs().format('DD/MM/YYYY')}
           </Typography>
         </Box>
         <Divider sx={{ mb: 3 }} />
