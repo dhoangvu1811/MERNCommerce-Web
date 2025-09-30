@@ -1,38 +1,43 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { Box, Typography, Paper, Alert } from '@mui/material'
 import { SessionDataGrid, UserSessionDialog } from './SessionTableComponents'
-import {
-  getAllUsersWithSessionCount,
-  getSessionsByUserId,
-  getUserById
-} from '../../mocks/userSessions'
+import { sessionApi } from '../../apis'
+import dayjs from 'dayjs'
 
 const SessionTable = () => {
   // Local state management
   const [users, setUsers] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false)
-  const [, setSelectedUserId] = useState(null)
+  const [selectedUserId, setSelectedUserId] = useState(null)
   const [selectedUserName, setSelectedUserName] = useState('')
   const [userSessions, setUserSessions] = useState([])
+  const [isLoadingSessions, setIsLoadingSessions] = useState(false)
 
-  // Load mock data khi component mount
+  // Load users từ API
   useEffect(() => {
     const loadUsers = async () => {
       setIsLoading(true)
-      try {
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 1000))
 
-        const usersData = getAllUsersWithSessionCount()
-        setUsers(usersData)
-      } catch (error) {
-        // Handle error silently or show toast notification
-        // eslint-disable-next-line no-console
-        console.warn('Error loading users:', error)
-      } finally {
-        setIsLoading(false)
-      }
+      const response = await sessionApi.getUsersWithSessionSummary()
+
+      // Transform data nếu cần thiết để phù hợp với DataGrid
+      const transformedUsers =
+        response.data?.users?.map((user) => ({
+          _id: user._id || user.id,
+          name: user.name || `${user.firstName} ${user.lastName}`,
+          email: user.email,
+          phone: user.phone || '',
+          avatar: user.avatar || '',
+          isActive: user.isActive !== undefined ? user.isActive : true,
+          emailVerified: user.emailVerified || false,
+          totalSessions: user.totalSessions || 0,
+          activeSessions: user.activeSessions || 0,
+          lastLogin: user.lastLogin
+        })) || []
+
+      setUsers(transformedUsers)
+      setIsLoading(false)
     }
 
     loadUsers()
@@ -40,24 +45,32 @@ const SessionTable = () => {
 
   // Handle xem sessions của user
   const handleViewSessions = async (userId, userName) => {
-    setIsLoading(true)
-    try {
-      // Simulate API call để lấy sessions
-      await new Promise((resolve) => setTimeout(resolve, 500))
+    setIsLoadingSessions(true)
 
-      const sessions = getSessionsByUserId(userId)
-      const user = getUserById(userId)
+    const response = await sessionApi.getUserSessions(userId)
 
-      setSelectedUserId(userId)
-      setSelectedUserName(user?.name || userName)
-      setUserSessions(sessions)
-      setSessionDialogOpen(true)
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error loading user sessions:', error)
-    } finally {
-      setIsLoading(false)
-    }
+    // Transform session data để phù hợp với DB schema
+    const transformedSessions =
+      response.data?.sessions?.map((session) => ({
+        _id: session._id,
+        sessionId: session.sessionId,
+        userId: session.userId,
+        deviceInfo: session.deviceInfo || 'Không xác định',
+        ipAddress: session.ipAddress || 'N/A',
+        location: session.location || 'Không xác định', // Có thể cần parse từ ipAddress
+        loginTime: dayjs(session.createdAt).toDate(), // Convert timestamp to Date using dayjs
+        lastActivity: session.updatedAt
+          ? dayjs(session.updatedAt).toDate()
+          : dayjs(session.createdAt).toDate(),
+        isActive: session.isActive !== undefined ? session.isActive : true,
+        expiresAt: dayjs(session.expiresAt).toDate()
+      })) || []
+
+    setSelectedUserId(userId)
+    setSelectedUserName(userName)
+    setUserSessions(transformedSessions)
+    setSessionDialogOpen(true)
+    setIsLoadingSessions(false)
   }
 
   // Handle đóng session dialog
@@ -66,6 +79,29 @@ const SessionTable = () => {
     setSelectedUserId(null)
     setSelectedUserName('')
     setUserSessions([])
+  }
+
+  // Handle refresh users data sau khi revoke sessions
+  const handleRefreshUsers = async () => {
+    setIsLoading(true)
+
+    const response = await sessionApi.getUsersWithSessionSummary()
+    const transformedUsers =
+      response.data?.users?.map((user) => ({
+        _id: user._id || user.id,
+        name: user.name || `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        phone: user.phone || '',
+        avatar: user.avatar || '',
+        isActive: user.isActive !== undefined ? user.isActive : true,
+        emailVerified: user.emailVerified || false,
+        totalSessions: user.totalSessions || 0,
+        activeSessions: user.activeSessions || 0,
+        lastLogin: user.lastLogin
+      })) || []
+
+    setUsers(transformedUsers)
+    setIsLoading(false)
   }
 
   // Filtered users (có thể mở rộng để add search functionality)
@@ -109,6 +145,9 @@ const SessionTable = () => {
         onClose={handleCloseSessionDialog}
         userName={selectedUserName}
         sessions={userSessions}
+        userId={selectedUserId}
+        loading={isLoadingSessions}
+        onSessionRevoked={handleRefreshUsers}
       />
     </Box>
   )

@@ -8,9 +8,9 @@ export const mockUsers = [
     address: '123 Đường Lê Loi, Quận 1, TP.HCM',
     avatar: null,
     isActive: true,
-    isEmailVerified: true,
+    emailVerified: true,
     createdAt: '2024-01-15T08:30:00Z',
-    lastLoginAt: '2024-03-20T14:30:00Z'
+    lastLogin: '2024-03-20T14:30:00Z'
   },
   {
     _id: '66f1234567890abcdef01235',
@@ -20,9 +20,9 @@ export const mockUsers = [
     address: '456 Đường Nguyễn Huệ, Quận 3, TP.HCM',
     avatar: null,
     isActive: true,
-    isEmailVerified: false,
+    emailVerified: false,
     createdAt: '2024-02-10T10:15:00Z',
-    lastLoginAt: '2024-03-19T09:45:00Z'
+    lastLogin: '2024-03-19T09:45:00Z'
   },
   {
     _id: '66f1234567890abcdef01236',
@@ -32,9 +32,9 @@ export const mockUsers = [
     address: '789 Đường Pasteur, Quận 1, TP.HCM',
     avatar: null,
     isActive: false,
-    isEmailVerified: true,
+    emailVerified: true,
     createdAt: '2024-01-25T16:20:00Z',
-    lastLoginAt: '2024-03-18T11:20:00Z'
+    lastLogin: '2024-03-18T11:20:00Z'
   },
   {
     _id: '66f1234567890abcdef01237',
@@ -44,9 +44,9 @@ export const mockUsers = [
     address: '321 Đường Võ Văn Tần, Quận 3, TP.HCM',
     avatar: null,
     isActive: true,
-    isEmailVerified: true,
+    emailVerified: true,
     createdAt: '2024-03-01T12:45:00Z',
-    lastLoginAt: '2024-03-20T16:10:00Z'
+    lastLogin: '2024-03-20T16:10:00Z'
   },
   {
     _id: '66f1234567890abcdef01238',
@@ -56,9 +56,9 @@ export const mockUsers = [
     address: '654 Đường Cách Mạng Tháng 8, Quận 10, TP.HCM',
     avatar: null,
     isActive: true,
-    isEmailVerified: false,
+    emailVerified: false,
     createdAt: '2024-02-20T09:30:00Z',
-    lastLoginAt: '2024-03-19T13:25:00Z'
+    lastLogin: '2024-03-19T13:25:00Z'
   },
   {
     _id: '66f1234567890abcdef01239',
@@ -68,9 +68,9 @@ export const mockUsers = [
     address: '987 Đường Nam Kỳ Khởi Nghĩa, Quận 1, TP.HCM',
     avatar: null,
     isActive: true,
-    isEmailVerified: true,
+    emailVerified: true,
     createdAt: '2024-01-05T14:00:00Z',
-    lastLoginAt: '2024-03-20T10:15:00Z'
+    lastLogin: '2024-03-20T10:15:00Z'
   }
 ]
 
@@ -246,8 +246,8 @@ export const getSessionsByUserId = (userId) => {
 export const getAllUsersWithSessionCount = () => {
   return mockUsers.map((user) => ({
     ...user,
-    sessionCount: mockUserSessions[user._id]?.length || 0,
-    activeSessionCount:
+    totalSessions: mockUserSessions[user._id]?.length || 0,
+    activeSessions:
       mockUserSessions[user._id]?.filter((session) => session.isActive)
         .length || 0
   }))

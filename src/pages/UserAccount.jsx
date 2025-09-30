@@ -11,6 +11,7 @@ import {
 } from '@mui/material'
 import ProfileTab from '../components/UserAccount/ProfileTab'
 import SecurityTab from '../components/UserAccount/SecurityTab'
+import SessionsTab from '../components/UserAccount/SessionsTab'
 
 const UserAccount = () => {
   const [activeTab, setActiveTab] = useState(0)
@@ -55,12 +56,14 @@ const UserAccount = () => {
           >
             <Tab label='Profile' />
             <Tab label='Security' />
+            <Tab label='Sessions' />
           </Tabs>
         </Box>
 
         <Box sx={{ p: { xs: 2, md: 4 } }}>
           {activeTab === 0 && <ProfileTab />}
           {activeTab === 1 && <SecurityTab />}
+          {activeTab === 2 && <SessionsTab />}
         </Box>
       </Paper>
     </Container>

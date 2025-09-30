@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -17,31 +17,118 @@ import {
   Paper,
   IconButton,
   Stack,
-  Divider
+  Divider,
+  Tooltip,
+  CircularProgress
 } from '@mui/material'
 import {
   Close as CloseIcon,
-  Computer as ComputerIcon,
-  Smartphone as SmartphoneIcon,
-  Tablet as TabletIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
   LocationOn as LocationOnIcon,
-  Schedule as ScheduleIcon
+  Schedule as ScheduleIcon,
+  Delete as DeleteIcon,
+  DeleteSweep as DeleteSweepIcon
 } from '@mui/icons-material'
+import { Computer as ComputerIcon } from '@mui/icons-material'
 import { formatDate } from '../../../utils/formatUtils'
+import { parseDeviceInfo } from '../../../utils/sessionUtils'
+import { DeviceIcon } from '../../../utils/deviceIconUtils'
+import { sessionApi } from '../../../apis'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/vi'
 
-const UserSessionDialog = ({ open, onClose, userName, sessions }) => {
-  // Helper function để lấy icon device
-  const getDeviceIcon = (device) => {
-    const deviceLower = device.toLowerCase()
-    if (deviceLower.includes('iphone') || deviceLower.includes('android')) {
-      return <SmartphoneIcon fontSize='small' />
+// Configure dayjs
+dayjs.extend(relativeTime)
+dayjs.locale('vi')
+
+const UserSessionDialog = ({
+  open,
+  onClose,
+  userName,
+  sessions,
+  userId,
+  loading,
+  onSessionRevoked
+}) => {
+  const [revokeLoading, setRevokeLoading] = useState(false)
+  const [revokeAllLoading, setRevokeAllLoading] = useState(false)
+  const [localSessions, setLocalSessions] = useState(sessions)
+  const [localLoading, setLocalLoading] = useState(false)
+
+  // Update local sessions khi sessions prop thay đổi
+  React.useEffect(() => {
+    setLocalSessions(sessions)
+  }, [sessions])
+
+  // Hàm refresh sessions giống như handleViewSessions trong SessionTable
+  const refreshSessions = async () => {
+    if (!userId) return
+
+    setLocalLoading(true)
+
+    const response = await sessionApi.getUserSessions(userId)
+
+    // Transform session data để phù hợp với DB schema
+    const transformedSessions =
+      response.data?.sessions?.map((session) => ({
+        _id: session._id,
+        sessionId: session.sessionId,
+        userId: session.userId,
+        deviceInfo: session.deviceInfo || 'Không xác định',
+        ipAddress: session.ipAddress || 'N/A',
+        location: session.location || 'Không xác định',
+        loginTime: dayjs(session.createdAt).toDate(),
+        lastActivity: session.updatedAt
+          ? dayjs(session.updatedAt).toDate()
+          : dayjs(session.createdAt).toDate(),
+        isActive: session.isActive !== undefined ? session.isActive : true,
+        expiresAt: dayjs(session.expiresAt).toDate()
+      })) || []
+
+    setLocalSessions(transformedSessions)
+    setLocalLoading(false)
+  }
+
+  // Handle revoke single session
+  const handleRevokeSession = async (sessionId) => {
+    if (!userId || !sessionId) return
+
+    setRevokeLoading(true)
+
+    await sessionApi.revokeSession(sessionId)
+
+    // Refresh sessions trong dialog
+    await refreshSessions()
+
+    // Refresh data users list
+    if (onSessionRevoked) {
+      await onSessionRevoked()
     }
-    if (deviceLower.includes('ipad') || deviceLower.includes('tablet')) {
-      return <TabletIcon fontSize='small' />
+
+    setRevokeLoading(false)
+  }
+
+  // Handle revoke all sessions của user
+  const handleRevokeAllSessions = async () => {
+    if (!userId) return
+
+    setRevokeAllLoading(true)
+
+    await sessionApi.revokeAllUserSessions(userId)
+
+    // Refresh sessions trong dialog
+    await refreshSessions()
+
+    // Refresh data users list
+    if (onSessionRevoked) {
+      await onSessionRevoked()
     }
-    return <ComputerIcon fontSize='small' />
+
+    // Close dialog sau khi revoke all
+    onClose()
+    setRevokeAllLoading(false)
   }
 
   // Helper function để format thời gian
@@ -50,18 +137,7 @@ const UserSessionDialog = ({ open, onClose, userName, sessions }) => {
   }
 
   const formatTimeAgo = (dateString) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInMs = now - date
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60))
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60))
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24))
-
-    if (diffInMinutes < 1) return 'vừa xong'
-    if (diffInMinutes < 60) return `${diffInMinutes} phút trước`
-    if (diffInHours < 24) return `${diffInHours} giờ trước`
-    if (diffInDays < 30) return `${diffInDays} ngày trước`
-    return `${Math.floor(diffInDays / 30)} tháng trước`
+    return dayjs(dateString).fromNow()
   }
 
   return (
@@ -90,7 +166,7 @@ const UserSessionDialog = ({ open, onClose, userName, sessions }) => {
             Sessions của {userName}
           </Typography>
           <Typography variant='body2' color='text.secondary'>
-            {sessions.length} session(s) được tìm thấy
+            {localSessions.length} session(s) được tìm thấy
           </Typography>
         </Box>
         <IconButton
@@ -107,7 +183,23 @@ const UserSessionDialog = ({ open, onClose, userName, sessions }) => {
       <Divider />
 
       <DialogContent sx={{ p: 0 }}>
-        {sessions.length === 0 ? (
+        {/* Loading State */}
+        {loading || localLoading ? (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 300
+            }}
+          >
+            <CircularProgress sx={{ mb: 2 }} />
+            <Typography variant='body2' color='text.secondary'>
+              Đang tải sessions...
+            </Typography>
+          </Box>
+        ) : localSessions.length === 0 ? (
           <Box
             sx={{
               display: 'flex',
@@ -147,27 +239,40 @@ const UserSessionDialog = ({ open, onClose, userName, sessions }) => {
                   <TableCell sx={{ fontWeight: 600, bgcolor: 'grey.50' }}>
                     Hết hạn
                   </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      bgcolor: 'grey.50',
+                      textAlign: 'center'
+                    }}
+                  >
+                    Thao tác
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {sessions.map((session) => (
+                {localSessions.map((session) => (
                   <TableRow
-                    key={session._id}
+                    key={session.sessionId || session._id}
                     sx={{
                       '&:hover': { bgcolor: 'action.hover' },
-                      bgcolor: session.isActive ? 'success.light' : 'inherit',
                       opacity: session.isActive ? 1 : 0.7
                     }}
                   >
                     <TableCell>
                       <Stack direction='row' spacing={1} alignItems='center'>
-                        {getDeviceIcon(session.device)}
+                        <DeviceIcon
+                          deviceInfo={session.deviceInfo || 'Computer'}
+                          fontSize='small'
+                        />
                         <Box>
                           <Typography variant='body2' fontWeight={500}>
-                            {session.device}
+                            {parseDeviceInfo(session.deviceInfo).device}
                           </Typography>
                           <Typography variant='caption' color='text.secondary'>
-                            Session ID: {session.sessionId.slice(-8)}
+                            Session ID:{' '}
+                            {session.sessionId?.slice(-8) ||
+                              session._id?.slice(-8)}
                           </Typography>
                         </Box>
                       </Stack>
@@ -205,10 +310,14 @@ const UserSessionDialog = ({ open, onClose, userName, sessions }) => {
                     <TableCell>
                       <Box>
                         <Typography variant='body2'>
-                          {formatDateTime(session.lastActivity)}
+                          {session.lastActivity
+                            ? formatDateTime(session.lastActivity)
+                            : formatDateTime(session.loginTime)}
                         </Typography>
                         <Typography variant='caption' color='text.secondary'>
-                          {formatTimeAgo(session.lastActivity)}
+                          {session.lastActivity
+                            ? formatTimeAgo(session.lastActivity)
+                            : 'Không có hoạt động'}
                         </Typography>
                       </Box>
                     </TableCell>
@@ -244,6 +353,35 @@ const UserSessionDialog = ({ open, onClose, userName, sessions }) => {
                         </Box>
                       </Stack>
                     </TableCell>
+
+                    <TableCell sx={{ textAlign: 'center' }}>
+                      {session.isActive && (
+                        <Tooltip title='Revoke session này'>
+                          <IconButton
+                            size='small'
+                            color='error'
+                            onClick={() =>
+                              handleRevokeSession(
+                                session.sessionId || session._id
+                              )
+                            }
+                            disabled={revokeLoading}
+                            sx={{
+                              '&:hover': {
+                                backgroundColor: 'error.light',
+                                color: 'white'
+                              }
+                            }}
+                          >
+                            {revokeLoading ? (
+                              <CircularProgress size={16} />
+                            ) : (
+                              <DeleteIcon fontSize='small' />
+                            )}
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -254,7 +392,32 @@ const UserSessionDialog = ({ open, onClose, userName, sessions }) => {
 
       <Divider />
 
-      <DialogActions sx={{ p: 2 }}>
+      <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
+        <Box>
+          {localSessions.some((session) => session.isActive) && (
+            <Button
+              onClick={handleRevokeAllSessions}
+              variant='outlined'
+              color='error'
+              startIcon={
+                revokeAllLoading ? (
+                  <CircularProgress size={16} />
+                ) : (
+                  <DeleteSweepIcon />
+                )
+              }
+              disabled={revokeAllLoading || revokeLoading}
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'error.light',
+                  color: 'white'
+                }
+              }}
+            >
+              {revokeAllLoading ? 'Đang revoke...' : 'Revoke tất cả Sessions'}
+            </Button>
+          )}
+        </Box>
         <Button onClick={onClose} variant='contained' color='primary'>
           Đóng
         </Button>
