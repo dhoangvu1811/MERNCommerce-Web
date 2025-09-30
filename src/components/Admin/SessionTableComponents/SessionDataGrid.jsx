@@ -20,6 +20,13 @@ import {
   Cancel as CancelIcon,
   Person as PersonIcon
 } from '@mui/icons-material'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/vi'
+
+// Configure dayjs
+dayjs.extend(relativeTime)
+dayjs.locale('vi')
 
 const SessionDataGrid = ({ users, onViewSessions, loading }) => {
   const [paginationModel, setPaginationModel] = useState({
@@ -112,7 +119,7 @@ const SessionDataGrid = ({ users, onViewSessions, loading }) => {
       )
     },
     {
-      field: 'isEmailVerified',
+      field: 'emailVerified',
       headerName: 'Email',
       width: 120,
       renderCell: (params) => (
@@ -125,7 +132,7 @@ const SessionDataGrid = ({ users, onViewSessions, loading }) => {
       )
     },
     {
-      field: 'sessionCount',
+      field: 'totalSessions',
       headerName: 'Tổng Sessions',
       width: 120,
       align: 'center',
@@ -140,7 +147,7 @@ const SessionDataGrid = ({ users, onViewSessions, loading }) => {
       )
     },
     {
-      field: 'activeSessionCount',
+      field: 'activeSessions',
       headerName: 'Sessions Hoạt động',
       width: 150,
       align: 'center',
@@ -155,26 +162,14 @@ const SessionDataGrid = ({ users, onViewSessions, loading }) => {
       )
     },
     {
-      field: 'lastLoginAt',
+      field: 'lastLogin',
       headerName: 'Đăng nhập cuối',
       width: 150,
       renderCell: (params) => {
         if (!params.value)
           return <Typography variant='caption'>Chưa có</Typography>
 
-        const lastLogin = new Date(params.value)
-        const now = new Date()
-        const diffInMs = now - lastLogin
-        const diffInMinutes = Math.floor(diffInMs / (1000 * 60))
-        const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60))
-        const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24))
-
-        let timeAgo = ''
-        if (diffInMinutes < 1) timeAgo = 'vừa xong'
-        else if (diffInMinutes < 60) timeAgo = `${diffInMinutes} phút trước`
-        else if (diffInHours < 24) timeAgo = `${diffInHours} giờ trước`
-        else if (diffInDays < 30) timeAgo = `${diffInDays} ngày trước`
-        else timeAgo = `${Math.floor(diffInDays / 30)} tháng trước`
+        const timeAgo = dayjs(params.value).fromNow()
 
         return (
           <Typography
