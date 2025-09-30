@@ -2,7 +2,9 @@
 // Fields: code, type('percent'|'fixed'), amount, maxDiscount, minOrderValue,
 // usageLimit(0=unlimited), usedCount, startDate, endDate, isActive, createdAt, updatedAt
 
-const now = Date.now()
+import dayjs from 'dayjs'
+
+const now = dayjs().valueOf()
 
 const vouchers = [
   {

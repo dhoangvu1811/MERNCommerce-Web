@@ -40,37 +40,48 @@ export const calculateDiscountedPrice = (originalPrice, discountPercent) => {
 
   return Math.round(price * (1 - discount / 100))
 }
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+import 'dayjs/locale/vi'
+
+// Configure dayjs
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.locale('vi')
+
 /**
- * Định dạng ngày nhất quán theo vi-VN.
+ * Định dạng ngày nhất quán theo vi-VN sử dụng dayjs.
  * raw: ISO string | timestamp | Date
  * options:
  *  - withTime: kèm giờ/phút (default false)
  *  - utc: định dạng theo UTC để tránh lệch múi giờ (default false)
- *  - locale: ngôn ngữ (default 'vi-VN')
- *  - month/day/year/hour/minute: ghi đè tùy chọn Intl nếu cần
+ *  - customFormat: format tùy chỉnh (default null)
  */
 export const formatDate = (
   raw,
-  {
-    withTime = false,
-    utc = false,
-    locale = 'vi-VN',
-    month,
-    day = 'numeric',
-    year = 'numeric',
-    hour = '2-digit',
-    minute = '2-digit'
-  } = {}
+  { withTime = false, utc = false, customFormat = null } = {}
 ) => {
   if (!raw && raw !== 0) return '-'
-  const d = new Date(raw)
-  if (isNaN(d)) return '-'
-  const base = { year, month: month || (withTime ? 'long' : '2-digit'), day }
-  const opts = withTime ? { ...base, hour, minute } : base
-  const tz = utc ? { timeZone: 'UTC' } : {}
-  return withTime
-    ? d.toLocaleString(locale, { ...opts, ...tz })
-    : d.toLocaleDateString(locale, { ...opts, ...tz })
+
+  let date = dayjs(raw)
+  if (!date.isValid()) return '-'
+
+  if (utc) {
+    date = date.utc()
+  }
+
+  // Nếu có format tùy chỉnh
+  if (customFormat) {
+    return date.format(customFormat)
+  }
+
+  // Format mặc định
+  if (withTime) {
+    return date.format('DD/MM/YYYY HH:mm')
+  } else {
+    return date.format('DD/MM/YYYY')
+  }
 }
 
 /**
@@ -78,12 +89,12 @@ export const formatDate = (
  */
 export const toDateTimeLocal = (raw) => {
   if (!raw && raw !== 0) return ''
-  const d = new Date(raw)
-  if (isNaN(d)) return ''
-  return d.toISOString().slice(0, 16)
-}
 
-// Đã loại bỏ các helper cũ: formatDateVi, formatDateUTCVi, formatPeriodVi (đã migrate sang formatDate)
+  const date = dayjs(raw)
+  if (!date.isValid()) return ''
+
+  return date.format('YYYY-MM-DDTHH:mm')
+}
 
 /**
  * Chuẩn hóa mã voucher: Uppercase và loại bỏ ký tự không hợp lệ theo pattern

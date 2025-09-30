@@ -23,6 +23,7 @@ import {
   toDateTimeLocal,
   sanitizeVoucherCode
 } from '../../../utils/formatUtils'
+import dayjs from 'dayjs'
 
 const VoucherFormDrawer = ({
   open,
@@ -88,8 +89,8 @@ const VoucherFormDrawer = ({
       minOrderValue: data.minOrderValue === '' ? 0 : Number(data.minOrderValue),
       usageLimit: data.usageLimit === '' ? 0 : Number(data.usageLimit),
       usedCount: data.usedCount === '' ? 0 : Number(data.usedCount),
-      startDate: data.startDate ? new Date(data.startDate).toISOString() : null,
-      endDate: data.endDate ? new Date(data.endDate).toISOString() : null,
+      startDate: data.startDate ? dayjs(data.startDate).toISOString() : null,
+      endDate: data.endDate ? dayjs(data.endDate).toISOString() : null,
       isActive: !!data.isActive
     }
     onSubmit && onSubmit(payload)
