@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Box, Typography, Paper, Alert } from '@mui/material'
+import {
+  Box,
+  Typography,
+  Paper,
+  Alert,
+  IconButton,
+  Tooltip
+} from '@mui/material'
+import RefreshIcon from '@mui/icons-material/Refresh'
 import { SessionDataGrid, UserSessionDialog } from './SessionTableComponents'
 import { sessionApi } from '../../apis'
 import dayjs from 'dayjs'
@@ -113,9 +121,25 @@ const SessionTable = () => {
     <Box sx={{ width: '100%', height: '100%' }}>
       {/* Header Section */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant='h4' component='h1' sx={{ fontWeight: 600, mb: 1 }}>
-          Quản lý Session Users
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+          <Typography
+            variant='h4'
+            component='h1'
+            sx={{ fontWeight: 600, flexGrow: 1 }}
+          >
+            Quản lý Session Users
+          </Typography>
+          <Tooltip title='Làm mới dữ liệu'>
+            <IconButton
+              onClick={handleRefreshUsers}
+              disabled={isLoading}
+              color='primary'
+              size='medium'
+            >
+              <RefreshIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
         <Typography variant='body1' color='text.secondary'>
           Theo dõi và quản lý các phiên đăng nhập của người dùng trong hệ thống
         </Typography>

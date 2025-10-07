@@ -175,6 +175,11 @@ const VoucherTable = () => {
   const handleAddNew = () => setAddDrawerOpen(true)
   const handleAddCancel = () => setAddDrawerOpen(false)
 
+  // Handle refresh data
+  const handleRefresh = () => {
+    fetchVouchers({ search: searchTerm.trim() || undefined })
+  }
+
   const handleBulkDelete = async (selectedIds) => {
     if (!selectedIds?.length) return
     // Optimistic
@@ -238,7 +243,11 @@ const VoucherTable = () => {
           alignItems: 'center'
         }}
       >
-        <VoucherTableHeader onAddNew={handleAddNew} />
+        <VoucherTableHeader
+          onAddNew={handleAddNew}
+          onRefresh={handleRefresh}
+          loading={loading}
+        />
         <VoucherSearchBar
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}

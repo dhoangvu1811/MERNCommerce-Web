@@ -239,6 +239,22 @@ const UserTable = () => {
     setUserToToggle(null)
   }
 
+  // Handle refresh data
+  const handleRefresh = async () => {
+    setIsLoading(true)
+    try {
+      await dispatch(
+        getAllUsers({
+          page: currentPage,
+          itemsPerPage: pagination.itemsPerPage,
+          search: searchTerm.trim() || undefined
+        })
+      ).unwrap()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   // Handle bulk delete
   const handleBulkDelete = async (selectedUserIds) => {
     if (selectedUserIds.length === 0) return
@@ -292,7 +308,11 @@ const UserTable = () => {
           alignItems: 'center'
         }}
       >
-        <UserTableHeader onAddNew={handleAddNew} />
+        <UserTableHeader
+          onAddNew={handleAddNew}
+          onRefresh={handleRefresh}
+          loading={isLoading}
+        />
         <UserSearchBar
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}

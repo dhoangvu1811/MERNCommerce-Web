@@ -22,11 +22,17 @@ const OrderTable = () => {
     handlePageChange,
     handlePageSizeChange,
     handleMarkOrderPaid,
-    handleUpdateOrderStatus
+    handleUpdateOrderStatus,
+    loadOrders
   } = useOrder()
 
   // Get filtered orders using the hook
   const filteredOrders = getFilteredOrders(searchTerm)
+
+  // Handle refresh data
+  const handleRefresh = () => {
+    loadOrders(pagination.page, pagination.itemsPerPage, searchTerm)
+  }
 
   // Action handlers
   const handleViewDetails = (id) => {
@@ -65,6 +71,7 @@ const OrderTable = () => {
         searchTerm={searchTerm}
         onSearchChange={(e) => setSearchTerm(e.target.value)}
         onSearch={handleSearch}
+        onRefresh={handleRefresh}
         loading={loading}
       />
 

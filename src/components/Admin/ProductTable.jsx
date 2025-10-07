@@ -27,8 +27,14 @@ const ProductTable = () => {
     handleProductSuccess,
     handlePageChange,
     handleItemsPerPageChange,
-    handleSearch
+    handleSearch,
+    fetchProducts
   } = useProducts()
+
+  // Handle refresh data
+  const handleRefresh = () => {
+    fetchProducts({ search: searchTerm })
+  }
 
   // Action handlers
   const handleEdit = (id) => {
@@ -127,7 +133,11 @@ const ProductTable = () => {
           alignItems: 'center'
         }}
       >
-        <ProductTableHeader onAddNew={handleAddNew} />
+        <ProductTableHeader
+          onAddNew={handleAddNew}
+          onRefresh={handleRefresh}
+          loading={loading}
+        />
         <ProductSearchBar
           searchTerm={searchTerm}
           onSearchChange={handleSearchChange}
