@@ -20,7 +20,7 @@ function Footer() {
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Box sx={{ mb: 3 }}>
               <Typography variant='h6' fontWeight='bold' gutterBottom>
-                MyShop
+                DHVtech
               </Typography>
               <Typography variant='body2' color='text.secondary'>
                 Mua sắm trực tuyến an toàn và tiện lợi với hàng ngàn sản phẩm
@@ -87,7 +87,7 @@ function Footer() {
           }}
         >
           <Typography variant='body2' color='text.secondary'>
-            &copy; {dayjs().year()} MyShop. Tất cả quyền được bảo lưu.
+            &copy; {dayjs().year()} DHVtech. Tất cả quyền được bảo lưu.
           </Typography>
           <Box>
             <Typography variant='body2' color='text.secondary'>

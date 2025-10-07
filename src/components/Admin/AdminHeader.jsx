@@ -18,8 +18,9 @@ import HomeIcon from '@mui/icons-material/Home'
 import LogoutIcon from '@mui/icons-material/Logout'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import SettingsIcon from '@mui/icons-material/Settings'
-import DashboardIcon from '@mui/icons-material/Dashboard'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
+import Logo from '../Header/Logo'
+import ModeSelect from '../ModeSelect/ModeSelect'
 
 const AdminHeader = () => {
   const navigate = useNavigate()
@@ -53,7 +54,7 @@ const AdminHeader = () => {
     <AppBar position='static' sx={{ bgcolor: '#1976d2', boxShadow: 3 }}>
       <Toolbar>
         <IconButton size='large' edge='start' color='inherit' sx={{ mr: 2 }}>
-          <DashboardIcon />
+          <Logo />
         </IconButton>
         <Typography
           variant='h6'
@@ -88,6 +89,36 @@ const AdminHeader = () => {
               <SettingsIcon />
             </IconButton>
           </Tooltip>
+
+          <Box
+            sx={{
+              mx: 1,
+              '& .MuiFormControl-root': {
+                minWidth: 100,
+                m: 0,
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&.Mui-focused': {
+                    color: 'rgba(255, 255, 255, 0.9)'
+                  }
+                },
+                '& .MuiOutlinedInput-root': {
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.3)'
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.5)'
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.7)'
+                  }
+                }
+              }
+            }}
+          >
+            <ModeSelect />
+          </Box>
 
           <Tooltip title='Account'>
             <IconButton

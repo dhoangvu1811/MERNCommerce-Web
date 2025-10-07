@@ -18,16 +18,20 @@ import 'dayjs/locale/vi'
 
 // Configure dayjs
 dayjs.locale('vi')
-import PersonIcon from '@mui/icons-material/Person'
-import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket'
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
-import LocalOfferIcon from '@mui/icons-material/LocalOffer'
 import PeopleIcon from '@mui/icons-material/People'
 import InventoryIcon from '@mui/icons-material/Inventory'
 import LocalShippingIcon from '@mui/icons-material/LocalShipping'
-import SecurityIcon from '@mui/icons-material/Security'
 import AdminHeader from '../../components/Admin/AdminHeader'
+
+// Import custom icons
+import {
+  UserManagementIcon,
+  ProductManagementIcon,
+  OrderManagementIcon,
+  VoucherManagementIcon,
+  SessionManagementIcon
+} from '../../components/icons/CustomIcons'
 
 // Import table components
 import UserTable from '../../components/Admin/UserTable'
@@ -281,46 +285,53 @@ const AdminDashboard = () => {
               borderRight: isMobile ? 0 : 1,
               borderBottom: isMobile ? 1 : 0,
               borderColor: 'divider',
-              [isMobile ? 'width' : 'minWidth']: isMobile ? '100%' : '250px',
+              [isMobile ? 'width' : 'minWidth']: isMobile ? '100%' : '280px',
               [isMobile ? 'minHeight' : 'height']: isMobile ? '72px' : '100%',
               '& .MuiTab-root': {
                 alignItems: 'flex-start',
-                minHeight: 60,
-                py: 1,
-                px: 3,
+                minHeight: 72,
+                py: 2,
+                px: isMobile ? 2 : 4,
+                gap: isMobile ? 1 : 2,
+                textAlign: 'left',
+                justifyContent: isMobile ? 'center' : 'flex-start',
                 ...(isMobile ? {} : { borderLeft: '4px solid transparent' }),
                 '&.Mui-selected': {
                   color: 'primary.main',
                   ...(isMobile ? {} : { borderLeft: '4px solid' }),
                   borderColor: 'primary.main',
                   backgroundColor: 'rgba(25, 118, 210, 0.04)'
+                },
+                '& .MuiTab-iconWrapper': {
+                  marginRight: isMobile ? 0 : 2,
+                  marginBottom: isMobile ? 1 : 0
                 }
               }
             }}
           >
             <Tab
               label={!isMobile && 'Quản lý người dùng'}
-              icon={<PersonIcon />}
+              icon={<UserManagementIcon />}
               iconPosition={isMobile ? 'top' : 'start'}
             />
             <Tab
               label={!isMobile && 'Quản lý sản phẩm'}
-              icon={<ShoppingBasketIcon />}
+              icon={<ProductManagementIcon />}
               iconPosition={isMobile ? 'top' : 'start'}
             />
             <Tab
               label={!isMobile && 'Quản lý đơn hàng'}
-              icon={<ShoppingCartIcon />}
+              icon={<OrderManagementIcon />}
               iconPosition={isMobile ? 'top' : 'start'}
             />
             <Tab
               label={!isMobile && 'Quản lý voucher'}
-              icon={<LocalOfferIcon />}
+              icon={<VoucherManagementIcon />}
               iconPosition={isMobile ? 'top' : 'start'}
             />
             <Tab
               label={!isMobile && 'Quản lý sessions'}
-              icon={<SecurityIcon />}
+              icon={<SessionManagementIcon />}
               iconPosition={isMobile ? 'top' : 'start'}
             />
           </Tabs>
@@ -329,7 +340,7 @@ const AdminDashboard = () => {
             sx={{
               flexGrow: 1,
               overflow: 'auto',
-              width: isMobile ? '100%' : 'calc(100% - 250px)',
+              width: isMobile ? '100%' : 'calc(100% - 280px)',
               bgcolor: 'background.default'
             }}
           >
