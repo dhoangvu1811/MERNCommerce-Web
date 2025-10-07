@@ -221,28 +221,21 @@ const UserSessionDialog = ({
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 600, bgcolor: 'grey.50' }}>
+                  <TableCell sx={{ fontWeight: 600 }}>
                     Device & Browser
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, bgcolor: 'grey.50' }}>
+                  <TableCell sx={{ fontWeight: 600 }}>
                     IP Address & Location
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, bgcolor: 'grey.50' }}>
+                  <TableCell sx={{ fontWeight: 600 }}>
                     Thời gian đăng nhập
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, bgcolor: 'grey.50' }}>
-                    Hoạt động cuối
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, bgcolor: 'grey.50' }}>
-                    Trạng thái
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, bgcolor: 'grey.50' }}>
-                    Hết hạn
-                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Hoạt động cuối</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Trạng thái</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Hết hạn</TableCell>
                   <TableCell
                     sx={{
                       fontWeight: 600,
-                      bgcolor: 'grey.50',
                       textAlign: 'center'
                     }}
                   >

@@ -36,7 +36,7 @@ export const deleteProduct = async (productId) => {
 // Xóa nhiều sản phẩm cùng lúc
 export const deleteMultipleProducts = async (productIds) => {
   const response = await axiosInstance.post('/products/deleteSelected', {
-    data: { productIds }
+    productIds: productIds
   })
   return response.data
 }

@@ -1,6 +1,6 @@
 import { Typography, Box } from '@mui/material'
 import { Link } from 'react-router-dom'
-import StorefrontIcon from '@mui/icons-material/Storefront'
+import { MainLogoIcon } from '../icons/CustomIcons'
 
 function Logo() {
   return (
@@ -14,7 +14,12 @@ function Logo() {
           alignItems: 'center'
         }}
       >
-        <StorefrontIcon sx={{ display: { xs: 'flex', md: 'flex' }, mr: 1 }} />
+        <MainLogoIcon sx={{
+          display: { xs: 'flex', md: 'flex' },
+          mr: 1.5,
+          width: { xs: 28, sm: 32, md: 36 },
+          height: { xs: 28, sm: 32, md: 36 }
+        }} />
         <Typography
           variant='h6'
           noWrap
@@ -26,7 +31,7 @@ function Logo() {
             fontSize: { xs: '1.1rem', sm: '1.25rem' }
           }}
         >
-          MyShop
+          DHVtech
         </Typography>
       </Link>
     </Box>
