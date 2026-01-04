@@ -40,6 +40,7 @@ const ProductFormDrawer = ({
       rating: product?.rating || 4.0,
       type: product?.type || '',
       countInStock: product?.countInStock || 1,
+      selled: product?.selled || 0,
       description: product?.description || '',
       discount: product?.discount || 0,
       image: product?.image || ''
@@ -71,6 +72,7 @@ const ProductFormDrawer = ({
         rating: product.rating,
         type: product.type,
         countInStock: product.countInStock,
+        selled: product.selled || 0,
         description: product.description,
         discount: product.discount,
         image: product.image
@@ -86,6 +88,7 @@ const ProductFormDrawer = ({
         rating: 4.0,
         type: '',
         countInStock: 1,
+        selled: 0,
         description: '',
         discount: 0,
         image: ''
@@ -363,6 +366,31 @@ const ProductFormDrawer = ({
               variant='outlined'
               error={!!error}
               helperText={error?.message}
+              onChange={(e) => field.onChange(Number(e.target.value))}
+            />
+          )}
+        />
+
+        <Controller
+          name='selled'
+          control={control}
+          rules={{
+            min: {
+              value: 0,
+              message: 'Số lượng đã bán không thể âm'
+            }
+          }}
+          render={({ field, fieldState: { error } }) => (
+            <TextField
+              {...field}
+              label='Số lượng đã bán'
+              type='number'
+              fullWidth
+              variant='outlined'
+              error={!!error}
+              helperText={
+                error?.message || 'Tổng số sản phẩm đã bán thành công'
+              }
               onChange={(e) => field.onChange(Number(e.target.value))}
             />
           )}

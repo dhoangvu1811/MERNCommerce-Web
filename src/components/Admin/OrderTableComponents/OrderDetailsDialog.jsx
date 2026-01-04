@@ -165,14 +165,18 @@ const OrderDetailsDialog = ({
       { value: ORDER_STATUS.REFUNDED, label: 'Đã hoàn tiền' }
     ]
 
-    // Filter out current status and invalid transitions
-    return allStatuses.filter((status) => {
-      const current = order?.status
-      if (status.value === current) return false
+    const current = order?.status
+
+    return allStatuses.map((status) => {
+      // Đánh dấu trạng thái hiện tại
+      const isCurrent = status.value === current
+
+      // Kiểm tra xem có thể chuyển sang trạng thái này không
+      let isDisabled = isCurrent
 
       // Don't allow changing from terminal states
       if ([ORDER_STATUS.COMPLETED, ORDER_STATUS.REFUNDED].includes(current)) {
-        return false
+        isDisabled = true
       }
 
       // Don't allow backward progression for normal flow
@@ -186,10 +190,14 @@ const OrderDetailsDialog = ({
           ORDER_STATUS.SHIPPED
         ].includes(status.value)
       ) {
-        return false
+        isDisabled = true
       }
 
-      return true
+      return {
+        ...status,
+        isCurrent,
+        isDisabled
+      }
     })
   }
 
@@ -642,20 +650,73 @@ const OrderDetailsDialog = ({
           <DialogContentText sx={{ mb: 2 }}>
             Thay đổi trạng thái đơn hàng #{order?.orderCode || order?._id}
           </DialogContentText>
+
+          {/* Hiển thị trạng thái hiện tại */}
+          <Box sx={{ mb: 3, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
+            <Typography variant='body2' color='text.secondary' gutterBottom>
+              Trạng thái hiện tại:
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {statusConfig && (
+                <Chip
+                  label={statusConfig.label}
+                  color={statusConfig.color}
+                  size='medium'
+                  sx={{ fontWeight: 600 }}
+                />
+              )}
+            </Box>
+          </Box>
+
           <FormControl fullWidth>
-            <InputLabel>Trạng thái mới</InputLabel>
+            <InputLabel>Chọn trạng thái mới</InputLabel>
             <Select
               value={newStatus}
-              label='Trạng thái mới'
+              label='Chọn trạng thái mới'
               onChange={handleStatusChange}
             >
               {getStatusOptions().map((option) => (
-                <MenuItem key={option.value} value={option.value}>
+                <MenuItem
+                  key={option.value}
+                  value={option.value}
+                  disabled={option.isDisabled}
+                  sx={{
+                    bgcolor: option.isCurrent ? 'primary.lighter' : 'inherit',
+                    fontWeight: option.isCurrent ? 600 : 400,
+                    borderLeft: option.isCurrent ? 4 : 0,
+                    borderColor: option.isCurrent
+                      ? 'primary.main'
+                      : 'transparent',
+                    '&.Mui-selected': {
+                      bgcolor: option.isCurrent
+                        ? 'primary.lighter'
+                        : 'action.selected'
+                    },
+                    '&:hover': {
+                      bgcolor: option.isDisabled ? 'inherit' : 'action.hover'
+                    }
+                  }}
+                >
                   {option.label}
+                  {option.isCurrent && (
+                    <Typography
+                      component='span'
+                      variant='caption'
+                      sx={{ ml: 1, color: 'primary.main' }}
+                    >
+                      (Hiện tại)
+                    </Typography>
+                  )}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
+
+          {getStatusOptions().every((opt) => opt.isDisabled) && (
+            <Typography variant='body2' color='error' sx={{ mt: 2 }}>
+              Không thể thay đổi trạng thái từ trạng thái hiện tại
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancelStatusUpdate} color='inherit'>
