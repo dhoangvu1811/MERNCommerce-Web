@@ -57,7 +57,7 @@ const SessionTable = () => {
 
     const response = await sessionApi.getUserSessions(userId)
 
-    // Transform session data để phù hợp với DB schema
+    // Transform session data để phù hợp với UI
     const transformedSessions =
       response.data?.sessions?.map((session) => ({
         _id: session._id,
@@ -65,12 +65,16 @@ const SessionTable = () => {
         userId: session.userId,
         deviceInfo: session.deviceInfo || 'Không xác định',
         ipAddress: session.ipAddress || 'N/A',
-        location: session.location || 'Không xác định', // Có thể cần parse từ ipAddress
-        loginTime: dayjs(session.createdAt).toDate(), // Convert timestamp to Date using dayjs
+        location: session.location || 'Không xác định',
+        loginTime: dayjs(session.createdAt).toDate(),
         lastActivity: session.updatedAt
           ? dayjs(session.updatedAt).toDate()
           : dayjs(session.createdAt).toDate(),
-        isActive: session.isActive !== undefined ? session.isActive : true,
+        // Sử dụng dữ liệu từ backend
+        isActive: session.isActive,
+        isExpired: session.isExpired,
+        status: session.status, // 'active', 'expired', 'revoked', 'logout'
+        logoutAt: session.logoutAt ? dayjs(session.logoutAt).toDate() : null,
         expiresAt: dayjs(session.expiresAt).toDate()
       })) || []
 

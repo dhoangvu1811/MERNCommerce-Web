@@ -156,6 +156,14 @@ const ProductDataGrid = ({
     { field: 'type', headerName: 'Loại', width: 120 },
     { field: 'countInStock', headerName: 'Số lượng', width: 100 },
     {
+      field: 'selled',
+      headerName: 'Đã bán',
+      width: 100,
+      renderCell: (params) => (
+        <Typography variant='body2'>{params.value || 0}</Typography>
+      )
+    },
+    {
       field: 'discount',
       headerName: 'Giảm giá',
       width: 100,

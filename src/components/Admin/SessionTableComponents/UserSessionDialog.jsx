@@ -1,3 +1,5 @@
+/* eslint-disable indent */
+/* eslint-disable no-console */
 import React, { useState } from 'react'
 import {
   Dialog,
@@ -28,7 +30,8 @@ import {
   LocationOn as LocationOnIcon,
   Schedule as ScheduleIcon,
   Delete as DeleteIcon,
-  DeleteSweep as DeleteSweepIcon
+  DeleteSweep as DeleteSweepIcon,
+  Logout as LogoutIcon
 } from '@mui/icons-material'
 import { Computer as ComputerIcon } from '@mui/icons-material'
 import { formatDate } from '../../../utils/formatUtils'
@@ -52,9 +55,10 @@ const UserSessionDialog = ({
   loading,
   onSessionRevoked
 }) => {
-  const [revokeLoading, setRevokeLoading] = useState(false)
+  const [revokingSessionId, setRevokingSessionId] = useState(null)
   const [revokeAllLoading, setRevokeAllLoading] = useState(false)
   const [localSessions, setLocalSessions] = useState(sessions)
+  console.log('🚀 ~ UserSessionDialog ~ localSessions:', localSessions)
   const [localLoading, setLocalLoading] = useState(false)
 
   // Update local sessions khi sessions prop thay đổi
@@ -67,47 +71,59 @@ const UserSessionDialog = ({
     if (!userId) return
 
     setLocalLoading(true)
+    try {
+      const response = await sessionApi.getUserSessions(userId)
+      console.log('🚀 ~ refreshSessions ~ response:', response)
 
-    const response = await sessionApi.getUserSessions(userId)
+      // Transform session data để phù hợp với UI
+      const transformedSessions =
+        response.data?.sessions?.map((session) => ({
+          _id: session._id,
+          sessionId: session.sessionId,
+          userId: session.userId,
+          deviceInfo: session.deviceInfo || 'Không xác định',
+          ipAddress: session.ipAddress || 'N/A',
+          location: session.location || 'Không xác định',
+          loginTime: dayjs(session.createdAt).toDate(),
+          lastActivity: session.updatedAt
+            ? dayjs(session.updatedAt).toDate()
+            : dayjs(session.createdAt).toDate(),
+          // Sử dụng dữ liệu từ backend
+          isActive: session.isActive,
+          isExpired: session.isExpired,
+          status: session.status, // 'active', 'expired', 'revoked', 'logout'
+          logoutAt: session.logoutAt ? dayjs(session.logoutAt).toDate() : null,
+          expiresAt: dayjs(session.expiresAt).toDate()
+        })) || []
 
-    // Transform session data để phù hợp với DB schema
-    const transformedSessions =
-      response.data?.sessions?.map((session) => ({
-        _id: session._id,
-        sessionId: session.sessionId,
-        userId: session.userId,
-        deviceInfo: session.deviceInfo || 'Không xác định',
-        ipAddress: session.ipAddress || 'N/A',
-        location: session.location || 'Không xác định',
-        loginTime: dayjs(session.createdAt).toDate(),
-        lastActivity: session.updatedAt
-          ? dayjs(session.updatedAt).toDate()
-          : dayjs(session.createdAt).toDate(),
-        isActive: session.isActive !== undefined ? session.isActive : true,
-        expiresAt: dayjs(session.expiresAt).toDate()
-      })) || []
-
-    setLocalSessions(transformedSessions)
-    setLocalLoading(false)
+      setLocalSessions(transformedSessions)
+    } catch (error) {
+      console.error('Error refreshing sessions:', error)
+    } finally {
+      setLocalLoading(false)
+    }
   }
 
   // Handle revoke single session
   const handleRevokeSession = async (sessionId) => {
     if (!userId || !sessionId) return
 
-    setRevokeLoading(true)
+    setRevokingSessionId(sessionId)
+    try {
+      await sessionApi.revokeSession(sessionId)
 
-    await sessionApi.revokeSession(sessionId)
+      // Refresh sessions trong dialog
+      await refreshSessions()
 
-    // Refresh sessions trong dialog
-    await refreshSessions()
-
-    // Refresh data users list
-    if (onSessionRevoked) {
-      await onSessionRevoked()
+      // Refresh data users list
+      if (onSessionRevoked) {
+        await onSessionRevoked()
+      }
+    } catch (error) {
+      console.error('Error revoking session:', error)
+    } finally {
+      setRevokingSessionId(null)
     }
-
-    setRevokeLoading(false)
   }
 
   // Handle revoke all sessions của user
@@ -115,20 +131,24 @@ const UserSessionDialog = ({
     if (!userId) return
 
     setRevokeAllLoading(true)
+    try {
+      await sessionApi.revokeAllUserSessions(userId)
 
-    await sessionApi.revokeAllUserSessions(userId)
+      // Refresh sessions trong dialog
+      await refreshSessions()
 
-    // Refresh sessions trong dialog
-    await refreshSessions()
+      // Refresh data users list
+      if (onSessionRevoked) {
+        await onSessionRevoked()
+      }
 
-    // Refresh data users list
-    if (onSessionRevoked) {
-      await onSessionRevoked()
+      // Close dialog sau khi revoke all
+      onClose()
+    } catch (error) {
+      console.error('Error revoking all sessions:', error)
+    } finally {
+      setRevokeAllLoading(false)
     }
-
-    // Close dialog sau khi revoke all
-    onClose()
-    setRevokeAllLoading(false)
   }
 
   // Helper function để format thời gian
@@ -166,7 +186,8 @@ const UserSessionDialog = ({
             Sessions của {userName}
           </Typography>
           <Typography variant='body2' color='text.secondary'>
-            {localSessions.length} session(s) được tìm thấy
+            {localSessions.filter((s) => s.status === 'active').length} active /{' '}
+            {localSessions.length} tổng sessions
           </Typography>
         </Box>
         <IconButton
@@ -249,7 +270,7 @@ const UserSessionDialog = ({
                     key={session.sessionId || session._id}
                     sx={{
                       '&:hover': { bgcolor: 'action.hover' },
-                      opacity: session.isActive ? 1 : 0.7
+                      opacity: session.status === 'active' ? 1 : 0.7
                     }}
                   >
                     <TableCell>
@@ -318,18 +339,34 @@ const UserSessionDialog = ({
                     <TableCell>
                       <Chip
                         icon={
-                          session.isActive ? (
+                          session.status === 'active' ? (
                             <CheckCircleIcon />
+                          ) : session.status === 'logout' ? (
+                            <LogoutIcon />
                           ) : (
                             <CancelIcon />
                           )
                         }
                         label={
-                          session.isActive ? 'Hoạt động' : 'Không hoạt động'
+                          session.status === 'active'
+                            ? 'Hoạt động'
+                            : session.status === 'expired'
+                            ? 'Đã hết hạn'
+                            : session.status === 'logout'
+                            ? 'Đã đăng xuất'
+                            : 'Đã thu hồi'
                         }
-                        color={session.isActive ? 'success' : 'default'}
+                        color={
+                          session.status === 'active'
+                            ? 'success'
+                            : session.status === 'expired'
+                            ? 'warning'
+                            : session.status === 'logout'
+                            ? 'info'
+                            : 'default'
+                        }
                         size='small'
-                        variant={session.isActive ? 'filled' : 'outlined'}
+                        variant={session.status === 'active' ? 'filled' : 'outlined'}
                       />
                     </TableCell>
 
@@ -348,7 +385,7 @@ const UserSessionDialog = ({
                     </TableCell>
 
                     <TableCell sx={{ textAlign: 'center' }}>
-                      {session.isActive && (
+                      {session.status === 'active' && (
                         <Tooltip title='Revoke session này'>
                           <IconButton
                             size='small'
@@ -358,7 +395,11 @@ const UserSessionDialog = ({
                                 session.sessionId || session._id
                               )
                             }
-                            disabled={revokeLoading}
+                            disabled={
+                              revokingSessionId ===
+                                (session.sessionId || session._id) ||
+                              revokeAllLoading
+                            }
                             sx={{
                               '&:hover': {
                                 backgroundColor: 'error.light',
@@ -366,7 +407,8 @@ const UserSessionDialog = ({
                               }
                             }}
                           >
-                            {revokeLoading ? (
+                            {revokingSessionId ===
+                            (session.sessionId || session._id) ? (
                               <CircularProgress size={16} />
                             ) : (
                               <DeleteIcon fontSize='small' />
@@ -387,7 +429,7 @@ const UserSessionDialog = ({
 
       <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
         <Box>
-          {localSessions.some((session) => session.isActive) && (
+          {localSessions.some((session) => session.status === 'active') && (
             <Button
               onClick={handleRevokeAllSessions}
               variant='outlined'
@@ -399,7 +441,7 @@ const UserSessionDialog = ({
                   <DeleteSweepIcon />
                 )
               }
-              disabled={revokeAllLoading || revokeLoading}
+              disabled={revokeAllLoading || revokingSessionId !== null}
               sx={{
                 '&:hover': {
                   backgroundColor: 'error.light',
