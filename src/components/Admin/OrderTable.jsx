@@ -23,6 +23,7 @@ const OrderTable = () => {
     handlePageSizeChange,
     handleMarkOrderPaid,
     handleUpdateOrderStatus,
+    handleUpdatePaymentStatus,
     loadOrders
   } = useOrder()
 
@@ -92,6 +93,7 @@ const OrderTable = () => {
         onPrint={handlePrint}
         onMarkOrderPaid={handleMarkOrderPaid}
         onUpdateOrderStatus={handleUpdateOrderStatus}
+        onUpdatePaymentStatus={handleUpdatePaymentStatus}
       />
     </Box>
   )
