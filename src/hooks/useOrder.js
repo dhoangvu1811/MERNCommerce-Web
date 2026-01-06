@@ -3,7 +3,8 @@ import { toast } from 'react-toastify'
 import {
   getAllOrders,
   markOrderPaid,
-  updateOrderStatus
+  updateOrderStatus,
+  updateOrderPaymentStatus
 } from '../apis/orderApi'
 
 const useOrder = () => {
@@ -151,6 +152,26 @@ const useOrder = () => {
     }
   }
 
+  // Handle update payment status
+  const handleUpdatePaymentStatus = async (orderId, updateData) => {
+    try {
+      setLoading(true)
+      const response = await updateOrderPaymentStatus(orderId, updateData)
+
+      if (response.code === 200) {
+        // Refresh orders list to get updated data
+        refreshOrders()
+        toast.success('Đã cập nhật trạng thái thanh toán thành công')
+        return true // Indicate success
+      } else {
+        // Handle non-200 response
+        throw new Error('Failed to update payment status')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return {
     // State
     orders,
@@ -167,7 +188,8 @@ const useOrder = () => {
     handleFilterChange,
     refreshOrders,
     handleMarkOrderPaid,
-    handleUpdateOrderStatus
+    handleUpdateOrderStatus,
+    handleUpdatePaymentStatus
   }
 }
 
