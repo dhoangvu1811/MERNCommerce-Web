@@ -77,3 +77,15 @@ export const adminCancelOrder = async (orderId) => {
   )
   return res.data
 }
+
+export const getOrderLogs = async (orderId) => {
+  const res = await axiosInstance.get(`${ORDER_PREFIX}/admin/logs/${orderId}`)
+  return res.data
+}
+
+export const getOrderLogsByCode = async (orderCode) => {
+  const res = await axiosInstance.get(
+    `${ORDER_PREFIX}/admin/logs-by-code/${orderCode}`
+  )
+  return res.data
+}
