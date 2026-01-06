@@ -58,7 +58,6 @@ const UserSessionDialog = ({
   const [revokingSessionId, setRevokingSessionId] = useState(null)
   const [revokeAllLoading, setRevokeAllLoading] = useState(false)
   const [localSessions, setLocalSessions] = useState(sessions)
-  console.log('🚀 ~ UserSessionDialog ~ localSessions:', localSessions)
   const [localLoading, setLocalLoading] = useState(false)
 
   // Update local sessions khi sessions prop thay đổi
@@ -73,7 +72,6 @@ const UserSessionDialog = ({
     setLocalLoading(true)
     try {
       const response = await sessionApi.getUserSessions(userId)
-      console.log('🚀 ~ refreshSessions ~ response:', response)
 
       // Transform session data để phù hợp với UI
       const transformedSessions =
