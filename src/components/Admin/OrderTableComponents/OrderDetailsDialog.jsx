@@ -20,19 +20,20 @@ import {
   TableRow,
   Paper,
   Stack,
-  Avatar,
-  DialogContentText,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel
+  Avatar
 } from '@mui/material'
+import { History as HistoryIcon } from '@mui/icons-material'
 import { formatPrice, formatDate } from '../../../utils/formatUtils'
 import {
   getOrderStatusConfig,
   ORDER_STATUS
 } from '../../../utils/orderConstants'
-import { getAdminOrderDetails } from '../../../apis/orderApi'
+import { getPaymentStatusDisplay } from '../../../utils/orderStatusHelpers'
+import { getAdminOrderDetails, getOrderLogs } from '../../../apis/orderApi'
+import ConfirmMarkPaidDialog from './ConfirmMarkPaidDialog'
+import UpdateOrderStatusDialog from './UpdateOrderStatusDialog'
+import UpdatePaymentStatusDialog from './UpdatePaymentStatusDialog'
+import OrderHistoryDialog from './OrderHistoryDialog'
 
 const OrderDetailsDialog = ({
   open,
@@ -40,14 +41,20 @@ const OrderDetailsDialog = ({
   selectedOrder,
   onPrint,
   onMarkOrderPaid,
-  onUpdateOrderStatus
+  onUpdateOrderStatus,
+  onUpdatePaymentStatus
 }) => {
   const [orderDetails, setOrderDetails] = useState(null)
   const [loading, setLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState(false)
   const [newStatus, setNewStatus] = useState('')
+  const [orderLogs, setOrderLogs] = useState(null)
+  const [logsLoading, setLogsLoading] = useState(false)
   const [showStatusUpdate, setShowStatusUpdate] = useState(false)
+  const [showPaymentStatusUpdate, setShowPaymentStatusUpdate] = useState(false)
+  const [newPaymentStatus, setNewPaymentStatus] = useState('')
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false)
 
   // Load detailed order information when dialog opens
   useEffect(() => {
@@ -73,10 +80,45 @@ const OrderDetailsDialog = ({
     }
   }
 
+  const loadOrderLogs = async (orderId) => {
+    try {
+      setLogsLoading(true)
+      const response = await getOrderLogs(orderId)
+      if (response.code === 200) {
+        setOrderLogs(response.data)
+      }
+    } catch {
+      // Error handling is centralized in axiosConfig.js
+      setOrderLogs(null)
+    } finally {
+      setLogsLoading(false)
+    }
+  }
+
   const handleClose = () => {
     setOrderDetails(null)
     setConfirmDialog(false)
+    setShowHistoryDialog(false)
     onClose()
+  }
+
+  // Handle open history dialog
+  const handleOpenHistory = () => {
+    if (order?._id) {
+      loadOrderLogs(order._id)
+    }
+    setShowHistoryDialog(true)
+  }
+
+  // Handle refresh logs
+  const handleRefreshLogs = () => {
+    if (order?._id) {
+      loadOrderLogs(order._id)
+    }
+  }
+
+  const handleCloseHistory = () => {
+    setShowHistoryDialog(false)
   }
 
   // Handle mark order as paid confirmation
@@ -94,6 +136,10 @@ const OrderDetailsDialog = ({
       if (success) {
         // Only reload if mark paid was successful
         await loadOrderDetails(order._id)
+        // Reload logs if history dialog is open
+        if (showHistoryDialog) {
+          await loadOrderLogs(order._id)
+        }
       }
     } catch {
       // Error is already handled by axiosConfig.js and shown via toast
@@ -134,6 +180,10 @@ const OrderDetailsDialog = ({
       if (success) {
         // Only reload if update was successful
         await loadOrderDetails(order._id)
+        // Reload logs if history dialog is open
+        if (showHistoryDialog) {
+          await loadOrderLogs(order._id)
+        }
       }
     } catch {
       // Error is already handled by axiosConfig.js and shown via toast
@@ -150,55 +200,51 @@ const OrderDetailsDialog = ({
     setNewStatus('')
   }
 
-  // Get available status options for admin
-  const getStatusOptions = () => {
-    const allStatuses = [
-      { value: ORDER_STATUS.PENDING, label: 'Đang chờ' },
-      { value: ORDER_STATUS.CONFIRMED, label: 'Đã xác nhận' },
-      { value: ORDER_STATUS.PROCESSING, label: 'Đang xử lý' },
-      { value: ORDER_STATUS.PACKED, label: 'Đã đóng gói' },
-      { value: ORDER_STATUS.SHIPPED, label: 'Đang giao hàng' },
-      { value: ORDER_STATUS.DELIVERED, label: 'Đã giao' },
-      { value: ORDER_STATUS.COMPLETED, label: 'Hoàn thành' },
-      { value: ORDER_STATUS.CANCELLED, label: 'Đã hủy' },
-      { value: ORDER_STATUS.RETURNED, label: 'Trả hàng' },
-      { value: ORDER_STATUS.REFUNDED, label: 'Đã hoàn tiền' }
-    ]
+  // Handle payment status update
+  const handlePaymentStatusUpdate = () => {
+    setNewPaymentStatus(order?.paymentStatus || '')
+    setShowPaymentStatusUpdate(true)
+  }
 
-    const current = order?.status
+  const handlePaymentStatusChange = (event) => {
+    setNewPaymentStatus(event.target.value)
+  }
 
-    return allStatuses.map((status) => {
-      // Đánh dấu trạng thái hiện tại
-      const isCurrent = status.value === current
+  const handleConfirmPaymentStatusUpdate = async () => {
+    if (
+      !order?._id ||
+      !newPaymentStatus ||
+      newPaymentStatus === order.paymentStatus
+    ) {
+      setShowPaymentStatusUpdate(false)
+      return
+    }
 
-      // Kiểm tra xem có thể chuyển sang trạng thái này không
-      let isDisabled = isCurrent
-
-      // Don't allow changing from terminal states
-      if ([ORDER_STATUS.COMPLETED, ORDER_STATUS.REFUNDED].includes(current)) {
-        isDisabled = true
+    setActionLoading(true)
+    try {
+      const success = await onUpdatePaymentStatus(order._id, {
+        paymentStatus: newPaymentStatus
+      })
+      if (success) {
+        // Only reload if update was successful
+        await loadOrderDetails(order._id)
+        // Reload logs if history dialog is open
+        if (showHistoryDialog) {
+          await loadOrderLogs(order._id)
+        }
       }
+    } catch {
+      // Error is already handled by axiosConfig.js and shown via toast
+    } finally {
+      // Always reset UI state to prevent stuck UI
+      setActionLoading(false)
+      setShowPaymentStatusUpdate(false)
+    }
+  }
 
-      // Don't allow backward progression for normal flow
-      if (
-        current === ORDER_STATUS.DELIVERED &&
-        [
-          ORDER_STATUS.PENDING,
-          ORDER_STATUS.CONFIRMED,
-          ORDER_STATUS.PROCESSING,
-          ORDER_STATUS.PACKED,
-          ORDER_STATUS.SHIPPED
-        ].includes(status.value)
-      ) {
-        isDisabled = true
-      }
-
-      return {
-        ...status,
-        isCurrent,
-        isDisabled
-      }
-    })
+  const handleCancelPaymentStatusUpdate = () => {
+    setShowPaymentStatusUpdate(false)
+    setNewPaymentStatus('')
   }
 
   const order = orderDetails || selectedOrder
@@ -357,6 +403,20 @@ const OrderDetailsDialog = ({
                           size='small'
                         />
                       )}
+                    </Box>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant='body2' color='text.secondary'>
+                        Trạng thái thanh toán
+                      </Typography>
+                      <Chip
+                        label={
+                          getPaymentStatusDisplay(order.paymentStatus).label
+                        }
+                        color={
+                          getPaymentStatusDisplay(order.paymentStatus).color
+                        }
+                        size='small'
+                      />
                     </Box>
                     {order.notes && (
                       <Box sx={{ mb: 1 }}>
@@ -567,6 +627,17 @@ const OrderDetailsDialog = ({
             Đóng
           </Button>
 
+          {/* Button xem lịch sử đơn hàng */}
+          <Button
+            onClick={handleOpenHistory}
+            color='info'
+            variant='outlined'
+            startIcon={<HistoryIcon />}
+            disabled={!order}
+          >
+            Xem lịch sử
+          </Button>
+
           {/* Button cập nhật trạng thái đơn hàng */}
           {order &&
             order.status !== ORDER_STATUS.COMPLETED &&
@@ -580,6 +651,18 @@ const OrderDetailsDialog = ({
                 Cập nhật trạng thái
               </Button>
             )}
+
+          {/* Button cập nhật trạng thái thanh toán */}
+          {order && order.paymentStatus !== 'REFUNDED' && (
+            <Button
+              onClick={handlePaymentStatusUpdate}
+              color='secondary'
+              variant='outlined'
+              disabled={!order || actionLoading}
+            >
+              Cập nhật thanh toán
+            </Button>
+          )}
 
           {/* Chỉ hiển thị button đánh dấu đã thanh toán nếu chưa thanh toán và chưa hủy */}
           {order &&
@@ -607,132 +690,45 @@ const OrderDetailsDialog = ({
       </Dialog>
 
       {/* Confirmation Dialog for Mark Order as Paid */}
-      <Dialog
+      <ConfirmMarkPaidDialog
         open={confirmDialog}
         onClose={handleCloseConfirmDialog}
-        maxWidth='sm'
-        fullWidth
-      >
-        <DialogTitle>Xác nhận đánh dấu đã thanh toán</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Bạn có chắc chắn muốn đánh dấu đơn hàng #
-            {order?.orderCode || order?._id} đã thanh toán?
-            <br />
-            Hành động này không thể hoàn tác.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseConfirmDialog} color='inherit'>
-            Hủy
-          </Button>
-          <Button
-            onClick={handleConfirmMarkPaid}
-            color='success'
-            variant='contained'
-            disabled={actionLoading}
-            startIcon={actionLoading ? <CircularProgress size={20} /> : null}
-          >
-            {actionLoading ? 'Đang xử lý...' : 'Xác nhận'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleConfirmMarkPaid}
+        order={order}
+        actionLoading={actionLoading}
+      />
 
       {/* Status Update Dialog */}
-      <Dialog
+      <UpdateOrderStatusDialog
         open={showStatusUpdate}
         onClose={handleCancelStatusUpdate}
-        maxWidth='sm'
-        fullWidth
-      >
-        <DialogTitle>Cập nhật trạng thái đơn hàng</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ mb: 2 }}>
-            Thay đổi trạng thái đơn hàng #{order?.orderCode || order?._id}
-          </DialogContentText>
+        onConfirm={handleConfirmStatusUpdate}
+        order={order}
+        newStatus={newStatus}
+        onStatusChange={handleStatusChange}
+        actionLoading={actionLoading}
+      />
 
-          {/* Hiển thị trạng thái hiện tại */}
-          <Box sx={{ mb: 3, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
-            <Typography variant='body2' color='text.secondary' gutterBottom>
-              Trạng thái hiện tại:
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {statusConfig && (
-                <Chip
-                  label={statusConfig.label}
-                  color={statusConfig.color}
-                  size='medium'
-                  sx={{ fontWeight: 600 }}
-                />
-              )}
-            </Box>
-          </Box>
+      {/* Payment Status Update Dialog */}
+      <UpdatePaymentStatusDialog
+        open={showPaymentStatusUpdate}
+        onClose={handleCancelPaymentStatusUpdate}
+        onConfirm={handleConfirmPaymentStatusUpdate}
+        order={order}
+        newPaymentStatus={newPaymentStatus}
+        onPaymentStatusChange={handlePaymentStatusChange}
+        actionLoading={actionLoading}
+      />
 
-          <FormControl fullWidth>
-            <InputLabel>Chọn trạng thái mới</InputLabel>
-            <Select
-              value={newStatus}
-              label='Chọn trạng thái mới'
-              onChange={handleStatusChange}
-            >
-              {getStatusOptions().map((option) => (
-                <MenuItem
-                  key={option.value}
-                  value={option.value}
-                  disabled={option.isDisabled}
-                  sx={{
-                    bgcolor: option.isCurrent ? 'primary.lighter' : 'inherit',
-                    fontWeight: option.isCurrent ? 600 : 400,
-                    borderLeft: option.isCurrent ? 4 : 0,
-                    borderColor: option.isCurrent
-                      ? 'primary.main'
-                      : 'transparent',
-                    '&.Mui-selected': {
-                      bgcolor: option.isCurrent
-                        ? 'primary.lighter'
-                        : 'action.selected'
-                    },
-                    '&:hover': {
-                      bgcolor: option.isDisabled ? 'inherit' : 'action.hover'
-                    }
-                  }}
-                >
-                  {option.label}
-                  {option.isCurrent && (
-                    <Typography
-                      component='span'
-                      variant='caption'
-                      sx={{ ml: 1, color: 'primary.main' }}
-                    >
-                      (Hiện tại)
-                    </Typography>
-                  )}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {getStatusOptions().every((opt) => opt.isDisabled) && (
-            <Typography variant='body2' color='error' sx={{ mt: 2 }}>
-              Không thể thay đổi trạng thái từ trạng thái hiện tại
-            </Typography>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelStatusUpdate} color='inherit'>
-            Hủy
-          </Button>
-          <Button
-            onClick={handleConfirmStatusUpdate}
-            color='primary'
-            variant='contained'
-            disabled={actionLoading || !newStatus}
-            startIcon={actionLoading ? <CircularProgress size={20} /> : null}
-          >
-            {actionLoading ? 'Đang xử lý...' : 'Cập nhật'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* History Dialog */}
+      <OrderHistoryDialog
+        open={showHistoryDialog}
+        onClose={handleCloseHistory}
+        order={order}
+        orderLogs={orderLogs}
+        logsLoading={logsLoading}
+        onRefresh={handleRefreshLogs}
+      />
     </>
   )
 }
