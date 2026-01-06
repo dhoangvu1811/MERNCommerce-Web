@@ -8,7 +8,13 @@ import {
   Tab,
   Grid,
   Paper,
-  CircularProgress
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button
 } from '@mui/material'
 import {
   Receipt,
@@ -32,6 +38,9 @@ function MyOrders() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [orderToCancel, setOrderToCancel] = useState(null)
+  const [canceling, setCanceling] = useState(false)
 
   const mapOrder = (o) => ({
     id: o._id || o.id,
@@ -197,13 +206,29 @@ function MyOrders() {
     alert(`Đánh giá sản phẩm cho đơn hàng: ${order.id}`)
   }
 
-  const handleCancelOrder = async (order) => {
+  const handleCancelOrder = (order) => {
+    setOrderToCancel(order)
+    setCancelDialogOpen(true)
+  }
+
+  const handleCloseCancelDialog = () => {
+    setCancelDialogOpen(false)
+    setOrderToCancel(null)
+  }
+
+  const handleConfirmCancel = async () => {
+    if (!orderToCancel) return
+
     try {
-      await cancelOrder(order.id)
+      setCanceling(true)
+      await cancelOrder(orderToCancel.id)
       toast.success('Đơn hàng đã được hủy thành công')
       await load()
+      handleCloseCancelDialog()
     } catch {
       // Error handling is done by axios interceptor
+    } finally {
+      setCanceling(false)
     }
   }
 
@@ -402,6 +427,56 @@ function MyOrders() {
             onClose={handleCloseDialog}
           />
         )}
+
+        {/* Cancel Order Confirmation Dialog */}
+        <Dialog
+          open={cancelDialogOpen}
+          onClose={handleCloseCancelDialog}
+          maxWidth='sm'
+          fullWidth
+        >
+          <DialogTitle>Xác nhận hủy đơn hàng</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Bạn có chắc chắn muốn hủy đơn hàng #
+              {orderToCancel?.orderCode || orderToCancel?.id}?
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  bgcolor: 'warning.lighter',
+                  borderRadius: 1
+                }}
+              >
+                <Typography variant='body2' color='warning.dark'>
+                  <strong>Lưu ý:</strong>
+                  <br />• Đơn hàng đã hủy không thể khôi phục
+                  <br />• Nếu đã thanh toán, số tiền sẽ được hoàn lại trong 3-7
+                  ngày làm việc
+                  <br />• Voucher đã sử dụng sẽ được hoàn lại (nếu còn hạn)
+                </Typography>
+              </Box>
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={handleCloseCancelDialog}
+              color='inherit'
+              disabled={canceling}
+            >
+              Đóng
+            </Button>
+            <Button
+              onClick={handleConfirmCancel}
+              color='error'
+              variant='contained'
+              disabled={canceling}
+              startIcon={canceling ? <CircularProgress size={20} /> : null}
+            >
+              {canceling ? 'Đang hủy...' : 'Xác nhận hủy'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Box>
   )
