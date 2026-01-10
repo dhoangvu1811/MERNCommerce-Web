@@ -138,10 +138,10 @@ function MyOrders() {
       // Phương thức thanh toán hiển thị
       paymentMethodText:
         {
-          card: 'Thẻ tín dụng',
-          cod: 'Thanh toán khi nhận hàng',
-          ewallet: 'Ví điện tử',
-          banking: 'Chuyển khoản ngân hàng'
+          CARD: 'Thẻ tín dụng',
+          COD: 'Thanh toán khi nhận hàng',
+          EWALLET: 'Ví điện tử',
+          BANK: 'Chuyển khoản ngân hàng'
         }[o.paymentMethod] || o.paymentMethod,
       // Tổng số sản phẩm
       totalItems: (o.items || []).reduce(

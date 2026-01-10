@@ -4,7 +4,8 @@ import {
   getAllOrders,
   markOrderPaid,
   updateOrderStatus,
-  updateOrderPaymentStatus
+  updateOrderPaymentStatus,
+  adminCancelOrder
 } from '../apis/orderApi'
 
 const useOrder = () => {
@@ -172,6 +173,26 @@ const useOrder = () => {
     }
   }
 
+  // Handle admin cancel order
+  const handleAdminCancelOrder = async (orderId) => {
+    try {
+      setLoading(true)
+      const response = await adminCancelOrder(orderId)
+
+      if (response.code === 200) {
+        // Refresh orders list to get updated data
+        refreshOrders()
+        toast.success('Hủy đơn hàng thành công')
+        return true // Indicate success
+      } else {
+        // Handle non-200 response
+        throw new Error('Failed to cancel order')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return {
     // State
     orders,
@@ -189,7 +210,8 @@ const useOrder = () => {
     refreshOrders,
     handleMarkOrderPaid,
     handleUpdateOrderStatus,
-    handleUpdatePaymentStatus
+    handleUpdatePaymentStatus,
+    handleAdminCancelOrder
   }
 }
 
