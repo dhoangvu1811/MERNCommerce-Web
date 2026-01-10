@@ -91,10 +91,10 @@ const OrderDataGrid = ({
       width: 120,
       renderCell: (params) => {
         const methodLabels = {
-          cod: 'COD',
-          ewallet: 'Ví điện tử',
-          banking: 'Chuyển khoản',
-          credit_card: 'Thẻ tín dụng'
+          COD: 'COD',
+          EWALLET: 'Ví điện tử',
+          BANK: 'Chuyển khoản',
+          CARD: 'Thẻ tín dụng'
         }
         return methodLabels[params.value] || params.value
       }

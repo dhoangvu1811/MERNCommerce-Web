@@ -24,6 +24,7 @@ const OrderTable = () => {
     handleMarkOrderPaid,
     handleUpdateOrderStatus,
     handleUpdatePaymentStatus,
+    handleAdminCancelOrder,
     loadOrders
   } = useOrder()
 
@@ -94,6 +95,7 @@ const OrderTable = () => {
         onMarkOrderPaid={handleMarkOrderPaid}
         onUpdateOrderStatus={handleUpdateOrderStatus}
         onUpdatePaymentStatus={handleUpdatePaymentStatus}
+        onAdminCancelOrder={handleAdminCancelOrder}
       />
     </Box>
   )

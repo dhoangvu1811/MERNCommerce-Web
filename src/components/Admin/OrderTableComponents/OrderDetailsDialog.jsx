@@ -31,6 +31,7 @@ import {
 import { getPaymentStatusDisplay } from '../../../utils/orderStatusHelpers'
 import { getAdminOrderDetails, getOrderLogs } from '../../../apis/orderApi'
 import ConfirmMarkPaidDialog from './ConfirmMarkPaidDialog'
+import ConfirmCancelOrderDialog from './ConfirmCancelOrderDialog'
 import UpdateOrderStatusDialog from './UpdateOrderStatusDialog'
 import UpdatePaymentStatusDialog from './UpdatePaymentStatusDialog'
 import OrderHistoryDialog from './OrderHistoryDialog'
@@ -42,7 +43,8 @@ const OrderDetailsDialog = ({
   onPrint,
   onMarkOrderPaid,
   onUpdateOrderStatus,
-  onUpdatePaymentStatus
+  onUpdatePaymentStatus,
+  onAdminCancelOrder
 }) => {
   const [orderDetails, setOrderDetails] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -53,6 +55,7 @@ const OrderDetailsDialog = ({
   const [logsLoading, setLogsLoading] = useState(false)
   const [showStatusUpdate, setShowStatusUpdate] = useState(false)
   const [showPaymentStatusUpdate, setShowPaymentStatusUpdate] = useState(false)
+  const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [newPaymentStatus, setNewPaymentStatus] = useState('')
   const [showHistoryDialog, setShowHistoryDialog] = useState(false)
 
@@ -99,6 +102,7 @@ const OrderDetailsDialog = ({
     setOrderDetails(null)
     setConfirmDialog(false)
     setShowHistoryDialog(false)
+    setShowCancelDialog(false)
     onClose()
   }
 
@@ -247,6 +251,38 @@ const OrderDetailsDialog = ({
     setNewPaymentStatus('')
   }
 
+  // Handle admin cancel order
+  const handleOpenCancelDialog = () => {
+    setShowCancelDialog(true)
+  }
+
+  const handleCloseCancelDialog = () => {
+    setShowCancelDialog(false)
+  }
+
+  const handleConfirmCancelOrder = async () => {
+    if (!order?._id) return
+
+    setActionLoading(true)
+    try {
+      const success = await onAdminCancelOrder(order._id)
+      if (success) {
+        // Reload order details after cancellation
+        await loadOrderDetails(order._id)
+        // Reload logs if history dialog is open
+        if (showHistoryDialog) {
+          await loadOrderLogs(order._id)
+        }
+      }
+    } catch {
+      // Error is already handled by axiosConfig.js and shown via toast
+    } finally {
+      // Always reset UI state to prevent stuck UI
+      setActionLoading(false)
+      setShowCancelDialog(false)
+    }
+  }
+
   const order = orderDetails || selectedOrder
   const statusConfig = order
     ? getOrderStatusConfig(order.status, order.paymentStatus)
@@ -266,10 +302,10 @@ const OrderDetailsDialog = ({
   const paymentMethodLabel = (method) => {
     if (!method) return 'N/A'
     const map = {
-      cod: 'Thanh toán khi nhận hàng',
-      ewallet: 'Ví điện tử',
-      banking: 'Chuyển khoản',
-      credit_card: 'Thẻ tín dụng'
+      COD: 'Thanh toán khi nhận hàng',
+      EWALLET: 'Ví điện tử',
+      BANK: 'Chuyển khoản',
+      CARD: 'Thẻ tín dụng'
     }
     return map[method] || method
   }
@@ -678,6 +714,21 @@ const OrderDetailsDialog = ({
               </Button>
             )}
 
+          {/* Button hủy đơn hàng - chỉ hiển thị nếu đơn chưa hủy, chưa hoàn tiền và chưa hoàn thành */}
+          {order &&
+            order.status !== ORDER_STATUS.CANCELLED &&
+            order.status !== ORDER_STATUS.REFUNDED &&
+            order.status !== ORDER_STATUS.COMPLETED && (
+              <Button
+                onClick={handleOpenCancelDialog}
+                color='error'
+                variant='outlined'
+                disabled={!order || actionLoading}
+              >
+                Hủy đơn hàng
+              </Button>
+            )}
+
           <Button
             onClick={() => onPrint(order?._id)}
             color='secondary'
@@ -728,6 +779,15 @@ const OrderDetailsDialog = ({
         orderLogs={orderLogs}
         logsLoading={logsLoading}
         onRefresh={handleRefreshLogs}
+      />
+
+      {/* Cancel Order Confirmation Dialog */}
+      <ConfirmCancelOrderDialog
+        open={showCancelDialog}
+        onClose={handleCloseCancelDialog}
+        onConfirm={handleConfirmCancelOrder}
+        order={order}
+        actionLoading={actionLoading}
       />
     </>
   )

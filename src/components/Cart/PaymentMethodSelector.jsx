@@ -11,10 +11,10 @@ import {
 } from '@mui/material'
 
 const METHODS = [
-  { value: 'cod', label: 'Thanh toán khi nhận hàng (COD)' },
-  { value: 'card', label: 'Thẻ tín dụng/Ghi nợ' },
-  { value: 'ewallet', label: 'Ví điện tử (MoMo/ZaloPay)' },
-  { value: 'bank', label: 'Chuyển khoản ngân hàng' }
+  { value: 'COD', label: 'Thanh toán khi nhận hàng (COD)' },
+  { value: 'CARD', label: 'Thẻ tín dụng/Ghi nợ' },
+  { value: 'EWALLET', label: 'Ví điện tử (MoMo/ZaloPay)' },
+  { value: 'BANK', label: 'Chuyển khoản ngân hàng' }
 ]
 
 function PaymentMethodSelector({ value, onChange }) {
